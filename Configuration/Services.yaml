@@ -4,14 +4,12 @@ services:
     autoconfigure: true
     public: false
 
-  Fr\BmgResubmission\:
+  Fr\MyraCloud\:
     resource: '../Classes/*'
     exclude: ['../Classes/Domain/{DTO,Enum}']
 
-  Fr\BmgResubmission\Command\MonitorCommand:
-    tags:
-      - name: 'console.command'
-        command: 'bmg:resubmission:monitor'
-        description: 'Send mails for outdated Page to Maintainer'
-        hidden: false
-        schedulable: true
+  Fr\MyraCloud\Service\MyraCacheService:
+    public: true
+
+  Fr\MyraCloud\Hook\Typo3CacheManager:
+    public: true
