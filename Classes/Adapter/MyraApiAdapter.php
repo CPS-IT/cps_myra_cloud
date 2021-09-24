@@ -55,7 +55,7 @@ class MyraApiAdapter
         }
 
         try {
-            $response = $this->myraCacheApi->clear($domain, $fqdn, $resources, true);
+            $response = $this->myraCacheApi->clear($domain, $fqdn, $resources, false);
         } catch (GuzzleException $e) {
             throw new \Exception('Could not connect to MyraApi (connection failed)');
         }
