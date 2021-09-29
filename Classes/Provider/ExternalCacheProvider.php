@@ -5,6 +5,7 @@ namespace Fr\MyraCloud\Provider;
 
 
 use BR\Toolkit\Typo3\VersionWrapper\InstanceUtility;
+use Fr\MyraCloud\Adapter\AdapterInterface;
 use Fr\MyraCloud\Adapter\MyraApiAdapter;
 use Fr\MyraCloud\Domain\DTO\Adapter\AdapterRegisterInterface;
 use Fr\MyraCloud\Domain\DTO\Provider\ProviderItem;
@@ -52,15 +53,15 @@ abstract class ExternalCacheProvider
 
     /**
      * @param string $adapterClass
-     * @return AdapterRegisterInterface|null
+     * @return AdapterInterface|null
      */
-    private static function getAdapterClass(string $adapterClass): ?AdapterRegisterInterface
+    private static function getAdapterClass(string $adapterClass): ?AdapterInterface
     {
         $adapter = null;
         if (class_exists($adapterClass)) {
             try {
-                /** @var null|AdapterRegisterInterface $adapter */
-                if(!(($adapter = InstanceUtility::get($adapterClass)) instanceof AdapterRegisterInterface)) {
+                /** @var null|AdapterInterface $adapter */
+                if(!(($adapter = InstanceUtility::get($adapterClass)) instanceof AdapterInterface)) {
                     $adapter = null;
                 }
             } catch (Exception $e) {

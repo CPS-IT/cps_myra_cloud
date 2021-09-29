@@ -25,9 +25,9 @@ define(['TYPO3/CMS/Core/Ajax/AjaxRequest', 'TYPO3/CMS/Backend/Notification'], fu
                     .then(async function (response) {
                         let res = await response.resolve();
                         try {
-                            if (res.hasOwnProperty('status') && res.status === 'success') {
+                            if (res.hasOwnProperty('status') && res.status) {
                                 Typo3Notification.success('Cache Clear', 'Successful', 2);
-                            } else if (res.hasOwnProperty('status') && res.status === 'error') {
+                            } else if (res.hasOwnProperty('status') && !res.status) {
                                 Typo3Notification.error('Clear Cache', res.message);
                             } else {
                                 Typo3Notification.error('Clear Cache', 'Internal TYPO3 Error');

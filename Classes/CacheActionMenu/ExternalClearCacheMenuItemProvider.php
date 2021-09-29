@@ -18,7 +18,7 @@ class ExternalClearCacheMenuItemProvider implements ClearCacheActionsHookInterfa
     public function manipulateCacheActions(&$cacheActions, &$optionValues)
     {
         $provider = ExternalCacheProvider::getDefaultProviderItem();
-        if ($provider) {
+        if ($provider && $provider->canExecute()) {
             $uriBuilder = GeneralUtility::makeInstance(UriBuilder::class);
             $cacheActions[] = [
                 'id' => $provider->getCacheId(),

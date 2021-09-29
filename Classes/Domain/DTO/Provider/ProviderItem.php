@@ -3,21 +3,21 @@ declare(strict_types=1);
 
 namespace Fr\MyraCloud\Domain\DTO\Provider;
 
-use Fr\MyraCloud\Domain\DTO\Adapter\AdapterRegisterInterface;
+use Fr\MyraCloud\Adapter\AdapterInterface;
 
 class ProviderItem implements ProviderItemRegisterInterface
 {
-    private AdapterRegisterInterface $adapter;
+    private AdapterInterface $adapter;
 
     /**
-     * @param AdapterRegisterInterface $adapter
+     * @param AdapterInterface $adapter
      */
-    public function __construct(AdapterRegisterInterface $adapter)
+    public function __construct(AdapterInterface $adapter)
     {
         $this->adapter = $adapter;
     }
 
-    public function getAdapter(): AdapterRegisterInterface
+    public function getAdapter(): AdapterInterface
     {
         return $this->adapter;
     }
@@ -60,5 +60,10 @@ class ProviderItem implements ProviderItemRegisterInterface
     public function getTypo3CssClass(): string
     {
         return 't3js-clear-page-cache';
+    }
+
+    public function canExecute(): bool
+    {
+        return $this->getAdapter()->canExecute();
     }
 }

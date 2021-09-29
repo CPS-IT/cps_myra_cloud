@@ -3,6 +3,7 @@ declare(strict_types=1);
 
 namespace Fr\MyraCloud\Controller;
 
+use Fr\MyraCloud\Service\ExternalCacheService;
 use Fr\MyraCloud\Service\PageService;
 use Fr\MyraCloud\Service\SiteService;
 use Psr\Http\Message\ResponseFactoryInterface;
@@ -12,39 +13,37 @@ use Psr\Http\Message\ServerRequestInterface;
 class ExternalClearCacheController
 {
     private ResponseFactoryInterface $responseFactory;
-    private PageService $pageService;
-    private SiteService $siteService;
+    private ExternalCacheService $externalCacheService;
 
     /**
      * @param ResponseFactoryInterface $responseFactory
      * @param PageService $pageService
      * @param SiteService $siteService
      */
-    public function __construct(ResponseFactoryInterface $responseFactory, PageService $pageService, SiteService $siteService)
+    public function __construct(ResponseFactoryInterface $responseFactory, ExternalCacheService $externalCacheService)
     {
         $this->responseFactory = $responseFactory;
-        $this->pageService = $pageService;
-        $this->siteService = $siteService;
+        $this->externalCacheService = $externalCacheService;
     }
 
     public function clearPageCache(ServerRequestInterface $request): ResponseInterface
     {
         $clearAll = (bool)($request->getQueryParams()['clearAll']??false);
         $pageUid = (int)($request->getQueryParams()['uid']??0);
-        $page = $this->pageService->getPage($pageUid);
-        $sites = $this->siteService->getSitesForClearance($page, $clearAll);
+        $result = $this->externalCacheService->clearPage($pageUid, $clearAll);
 
 
-        return $this->getJsonResponse(['status' => 'success']);
+        return $this->getJsonResponse(['status' => $result], (!$result?500:200));
     }
 
     /**
      * @param array $data
+     * @param int $statusCode
      * @return ResponseInterface
      */
-    private function getJsonResponse(array $data): ResponseInterface
+    private function getJsonResponse(array $data, int $statusCode = 200): ResponseInterface
     {
-        $response = $this->responseFactory->createResponse()
+        $response = $this->responseFactory->createResponse($statusCode)
             ->withHeader('Content-Type', 'application/json; charset=utf-8');
         $response->getBody()->write(
             (string)json_encode($data, JSON_HEX_QUOT | JSON_HEX_TAG | JSON_HEX_AMP | JSON_HEX_APOS)

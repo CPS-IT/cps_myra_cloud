@@ -3,8 +3,10 @@
 namespace Fr\MyraCloud\Service;
 
 use Fr\MyraCloud\Domain\DTO\Typo3\PageIdInterface;
+use Fr\MyraCloud\Domain\DTO\Typo3\SiteConfigExternalIdentifierInterface;
+use Fr\MyraCloud\Domain\DTO\Typo3\SiteConfigInterface;
+use Fr\MyraCloud\Domain\DTO\Typo3\Typo3SiteConfig;
 use TYPO3\CMS\Core\SingletonInterface;
-use TYPO3\CMS\Core\Site\Entity\Site;
 use TYPO3\CMS\Core\Site\SiteFinder;
 
 class SiteService implements SingletonInterface
@@ -22,7 +24,7 @@ class SiteService implements SingletonInterface
     /**
      * @param PageIdInterface|null $pageId
      * @param bool $clearAll
-     * @return array
+     * @return SiteConfigInterface[]
      */
     public function getSitesForClearance(?PageIdInterface $pageId, bool $clearAll = false): array
     {
@@ -33,14 +35,15 @@ class SiteService implements SingletonInterface
     }
 
     /**
-     * @return array
+     * @return SiteConfigInterface[]
      */
     private function getAllSupportedSites(): array
     {
         $sites = [];
         foreach ($this->siteFinder->getAllSites(true) as $site) {
-            if ($this->isSiteSupported($site)) {
-                $sites[] = $site;
+            $siteConfig = new Typo3SiteConfig($site);
+            if ($this->isSiteSupported($siteConfig)) {
+                $sites[] = $siteConfig;
             }
         }
 
@@ -49,29 +52,30 @@ class SiteService implements SingletonInterface
 
     /**
      * @param PageIdInterface $pageId
-     * @return array
+     * @return SiteConfigInterface[]
      */
     private function getAllSupportedSitesForPageId(PageIdInterface $pageId): array
     {
         try {
             $site = $this->siteFinder->getSiteByPageId($pageId->getPageId());
+            $siteConfig = new Typo3SiteConfig($site);
         } catch (\Exception $_) {
             return [];
         }
 
-        if ($site && $this->isSiteSupported($site)) {
-            return [$site];
+        if ($this->isSiteSupported($siteConfig)) {
+            return [$siteConfig];
         }
 
         return [];
     }
 
     /**
-     * @param Site $site
+     * @param SiteConfigExternalIdentifierInterface $site
      * @return bool
      */
-    private function isSiteSupported(Site $site): bool
+    private function isSiteSupported(SiteConfigExternalIdentifierInterface $site): bool
     {
-        return !empty($site->getConfiguration()['myra_host']);
+        return !empty($site->getExternalIdentifier());
     }
 }

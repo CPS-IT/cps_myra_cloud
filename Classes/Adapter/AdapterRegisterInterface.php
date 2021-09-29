@@ -1,7 +1,7 @@
 <?php
 declare(strict_types=1);
 
-namespace Fr\MyraCloud\Domain\DTO\Adapter;
+namespace Fr\MyraCloud\Adapter;
 
 interface AdapterRegisterInterface
 {

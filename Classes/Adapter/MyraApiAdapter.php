@@ -3,20 +3,30 @@ declare(strict_types=1);
 
 namespace Fr\MyraCloud\Adapter;
 
+use Fr\MyraCloud\Domain\DTO\Typo3\PageSlugInterface;
+use Fr\MyraCloud\Domain\DTO\Typo3\SiteConfigExternalIdentifierInterface;
+use Fr\MyraCloud\Domain\DTO\Typo3\SiteConfigInterface;
 use GuzzleHttp\Client;
 use GuzzleHttp\ClientInterface;
+use GuzzleHttp\Exception\GuzzleException;
 use GuzzleHttp\Handler\CurlHandler;
 use GuzzleHttp\HandlerStack;
 use GuzzleHttp\Middleware;
 use Myracloud\WebApi\Endpoint\AbstractEndpoint;
 use Myracloud\WebApi\Endpoint\CacheClear;
+use Myracloud\WebApi\Endpoint\DnsRecord;
 use Myracloud\WebApi\Endpoint\Domain;
+use Myracloud\WebApi\Endpoint\Statistic;
 use Myracloud\WebApi\Middleware\Signature;
 use Psr\Http\Message\RequestInterface;
 
 class MyraApiAdapter extends BaseAdapter
 {
-    private array $clients;
+    protected array $clients;
+
+    private const CONFIG_NAME_API_KEY = 'myra_api_key';
+    private const CONFIG_NAME_ENDPOINT = 'myra_endpoint';
+    private const CONFIG_NAME_SECRET = 'myra_secret';
 
     public function getCacheId(): string
     {
@@ -38,40 +48,117 @@ class MyraApiAdapter extends BaseAdapter
         return 'LLL:EXT:fr_myra_cloud/Resources/Private/Language/locallang_myra.xlf:description';
     }
 
-    /**
-     * @param InstanceConfig $instanceConfig
-     * @return CacheClear|null
-     */
-    private function getCacheClearApi(InstanceConfig $instanceConfig): ?CacheClear
+    protected function getAdapterConfigPrefix(): string
     {
-        /** @var ?CacheClear $instance */
-        $instance = $this->getEndPointApi(CacheClear::class ,$instanceConfig);
-        return $instance;
+        return 'myra';
     }
 
     /**
-     * @param InstanceConfig $instanceConfig
-     * @return Domain|null
+     * @param SiteConfigInterface $site
+     * @return bool
      */
-    private function getDomainApi(InstanceConfig $instanceConfig): ?Domain
+    public function clearSiteCache(SiteConfigInterface $site): bool
     {
-        /** @var ?Domain $instance */
-        $instance = $this->getEndPointApi(Domain::class ,$instanceConfig);
+        if (!$this->canExecute()) {
+            return false;
+        }
+
+        $r = false;
+        foreach ($this->getFqdnForSite($site) as $domain) {
+            $r |= $this->clearCacheDomain($site->getExternalIdentifier(), $domain, '/', true);
+        }
+
+        return (bool)$r;
+    }
+
+    public function clearPageCache(SiteConfigInterface $site, PageSlugInterface $pageSlug): bool
+    {
+        if (!$this->canExecute()) {
+            return false;
+        }
+
+        $r = false;
+        foreach ($this->getFqdnForSite($site) as $domain) {
+            $r |= $this->clearCacheDomain($site->getExternalIdentifier(), $domain, $pageSlug->getSlug());
+        }
+
+        return (bool)$r;
+    }
+
+    /**
+     * @param string $domain
+     * @param string $fqdn
+     * @param string $path
+     * @param bool $recursive
+     * @return bool
+     */
+    private function clearCacheDomain(string $domain, string $fqdn, string $path = '/', bool $recursive = false): bool
+    {
+        try {
+            $r = $this->getCacheClearApi()->clear($domain, $fqdn, $path, $recursive);
+        } catch (GuzzleException $e) {
+            return false;
+        }
+
+        return (!empty($r) && ($r['error']??true) === false);
+    }
+
+    /**
+     * @param SiteConfigExternalIdentifierInterface $site
+     * @return string[]
+     */
+    private function getFqdnForSite(SiteConfigExternalIdentifierInterface $site): array
+    {
+        $r = $this->getDomainRecordsForDomain($site->getExternalIdentifier());
+        $fqdn = [];
+        if (!empty($r) && $r['error'] === false) {
+            foreach ($r['list'] as $recordItem) {
+                $name = $recordItem['name'];
+                $fqdn[crc32($name)] = $name;
+            }
+        }
+
+        return array_values($fqdn);
+    }
+
+    /**
+     * @param string $domain
+     * @return array
+     */
+    private function getDomainRecordsForDomain(string $domain): array
+    {
+        /** @var DnsRecord $st */
+        $st = $this->getEndPointApi(DnsRecord::class);
+        $r = [];
+        try {
+            $r = $st->getList($domain);
+        } catch (\Exception $e) {
+        }
+
+        return $r;
+    }
+
+    /**
+     * @return CacheClear|null
+     */
+    private function getCacheClearApi(): ?CacheClear
+    {
+        /** @var ?CacheClear $instance */
+        $instance = $this->getEndPointApi(CacheClear::class);
         return $instance;
     }
 
     /**
      * @param string $className
-     * @param InstanceConfig $config
      * @return AbstractEndpoint|null
      */
-    private function getEndPointApi(string $className, InstanceConfig $config): ?AbstractEndpoint
+    private function getEndPointApi(string $className): ?AbstractEndpoint
     {
         if (!class_exists($className)) {
             return null;
         }
 
-        $client = $this->getMyraClient($config);
+        $client = $this->getMyraClient();
         try {
             return $client !== null ? new $className($client) : null;
         } catch (\Exception $e) {
@@ -80,36 +167,12 @@ class MyraApiAdapter extends BaseAdapter
     }
 
     /**
-     * @param MyraDomain $domain
-     * @param PageConfig $cacheConfig
-     * @param InstanceConfig $instanceConfig
-     * @return bool
-     * @throws \GuzzleHttp\Exception\GuzzleException
-     */
-    public function clearCache(MyraDomain $domain, PageConfig $cacheConfig, InstanceConfig $instanceConfig): bool
-    {
-        $clearCache = $this->getCacheClearApi($instanceConfig);
-        $result = $clearCache->clear($domain->getName(), $domain->getFqdn(), $cacheConfig->getResource(), false);
-        return true;
-    }
-
-    /**
-     * @param InstanceConfig $instanceConfig
-     * @return MyraDomainList
-     * @throws \Exception
-     */
-    public function getDomains(InstanceConfig $instanceConfig): MyraDomainList
-    {
-        return MyraDomainList::createWithResult($this->getDomainApi($instanceConfig)->getList());
-    }
-
-    /**
-     * @param InstanceConfig $instanceConfig
      * @return ClientInterface|null
      */
-    private function getMyraClient(InstanceConfig $instanceConfig): ?ClientInterface
+    private function getMyraClient(): ?ClientInterface
     {
-        $instanceId = $instanceConfig->getIdentifier();
+        $config = $this->getAdapterConfig();
+        $instanceId = md5(serialize($config));
         if (isset($this->clients[$instanceId])) {
             return $this->clients[$instanceId];
         }
@@ -117,7 +180,7 @@ class MyraApiAdapter extends BaseAdapter
         $stack = new HandlerStack();
         $stack->setHandler(new CurlHandler());
 
-        $signature = new Signature($instanceConfig->getSecret(), $instanceConfig->getApiKey());
+        $signature = new Signature($config[self::CONFIG_NAME_SECRET], $config[self::CONFIG_NAME_API_KEY]);
         $stack->push(
             Middleware::mapRequest(
                 function (RequestInterface $request) use ($signature) {
@@ -125,15 +188,11 @@ class MyraApiAdapter extends BaseAdapter
                 }
             )
         );
-        $config = [];
         return $this->clients[$instanceId] = new Client(
-            array_merge(
-                [
-                    'base_uri' => 'https://' . $instanceConfig->getEndpoint() . '/' . 'en' . '/rapi',
-                    'handler'  => $stack,
-                ],
-                $config
-            )
+            [
+                'base_uri' => 'https://' . $config[self::CONFIG_NAME_ENDPOINT] . '/' . 'en' . '/rapi',
+                'handler'  => $stack,
+            ],
         );
     }
 }
