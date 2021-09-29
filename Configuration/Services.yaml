@@ -8,8 +8,8 @@ services:
     resource: '../Classes/*'
     exclude: ['../Classes/Domain/{DTO,Enum}']
 
-  Fr\MyraCloud\Service\MyraCacheService:
+  Fr\MyraCloud\ButtonBar\ExternalClearCacheButtonBarItemProvider:
     public: true
 
-  Fr\MyraCloud\Hook\Typo3CacheManager:
+  Fr\MyraCloud\Controller\ExternalClearCacheController:
     public: true

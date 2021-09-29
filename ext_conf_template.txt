@@ -1,0 +1,11 @@
+# cat=Myra; type=string; label=API Endpoint. it's also possible to set the endpoint via environment variable: syntax ENV=YOUR_ENV_NAME or plaintext
+endpoint = api.myracloud.com
+
+# cat=Myra; type=string; label=MyraCloud User API-Key, user must have the correct user rights. it's also possible to set the api_key via environment variable: syntax ENV=YOUR_ENV_NAME or plaintext
+api_key = ENV=MYRA_API_KEY
+
+# cat=Myra; type=string; label=MyraCloud User API-Key Secret. it's also possible to set the secret via environment variable: syntax ENV=YOUR_ENV_NAME or plaintext
+secret = ENV=MYRA_SECRET
+
+# cat=Typo3; type=boolean; label=only clear cache on Production systems: default ON
+onlyLive = 1
