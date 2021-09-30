@@ -1,0 +1,20 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<xliff version="1.2" xmlns="urn:oasis:names:tc:xliff:document:1.2">
+	<file source-language="en" target-language="de" datatype="plaintext" original="EXT:cps_myra_cloud/Resources/Private/Language/locallang_myra.xlf">
+		<header/>
+		<body>
+			<trans-unit id="title" resname="title">
+                <source>MyraCloud Clear Cache</source>
+                <target>MyraCloud Cache leeren</target>
+            </trans-unit>
+            <trans-unit id="description" resname="description">
+                <source>Clear Cache for MyraCloud</source>
+                <target>Clear Cache for MyraCloud</target>
+            </trans-unit>
+            <trans-unit id="tca.site.cache.identifier" resname="tca.site.cache.identifier">
+                <source>Myra Hostname</source>
+                <target>Myra Hostname</target>
+            </trans-unit>
+		</body>
+	</file>
+</xliff>

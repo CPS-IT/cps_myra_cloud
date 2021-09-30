@@ -4,14 +4,12 @@ services:
     autoconfigure: true
     public: false
 
-  Fr\BmgResubmission\:
+  CPSIT\CpsMyraCloud\:
     resource: '../Classes/*'
     exclude: ['../Classes/Domain/{DTO,Enum}']
 
-  Fr\BmgResubmission\Command\MonitorCommand:
-    tags:
-      - name: 'console.command'
-        command: 'bmg:resubmission:monitor'
-        description: 'Send mails for outdated Page to Maintainer'
-        hidden: false
-        schedulable: true
+  CPSIT\CpsMyraCloud\ButtonBar\ExternalClearCacheButtonBarItemProvider:
+    public: true
+
+  CPSIT\CpsMyraCloud\Controller\ExternalClearCacheController:
+    public: true
