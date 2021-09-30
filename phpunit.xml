@@ -1,0 +1,49 @@
+<?xml version="1.0" encoding="UTF-8"?>
+
+<!-- https://phpunit.de/manual/current/en/appendixes.configuration.html -->
+<phpunit xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+         xsi:noNamespaceSchemaLocation="https://schema.phpunit.de/9.5/phpunit.xsd"
+         backupGlobals="true"
+         bootstrap=".Build/vendor/typo3/testing-framework/Resources/Core/Build/UnitTestsBootstrap.php"
+         colors="true"
+         failOnRisky="true"
+         cacheResultFile=".Build/phpunit_result/.phpunit.result.cache"
+         failOnWarning="true"
+         beStrictAboutTestsThatDoNotTestAnything="true"
+>
+    <php>
+        <ini name="error_reporting" value="-1" />
+        <env name="APP_ENV" value="test" />
+        <env name="TYPO3_CONTEXT" value="Testing" />
+        <env name="APP_SECRET" value="TESTING_SECRET" />
+        <env name="MYRA_ENDPOINT" value="TESTING_myra_endpoint" />
+        <env name="MYRA_KEY" value="TESTING_myra_key" />
+        <env name="MYRA_SECRET" value="TESTING_myra_secret" />
+    </php>
+
+    <testsuites>
+        <testsuite name="Unit Tests">
+            <directory>Tests/Unit</directory>
+        </testsuite>
+    </testsuites>
+
+    <coverage includeUncoveredFiles="true"
+              processUncoveredFiles="true"
+              ignoreDeprecatedCodeUnits="true"
+              disableCodeCoverageIgnore="false">
+        <include>
+            <directory suffix=".php">Classes/</directory>
+        </include>
+        <report>
+            <html outputDirectory=".Build/phpunit_result/html-coverage" lowUpperBound="50" highLowerBound="90"/>
+            <text outputFile=".Build/phpunit_result/coverage.txt" showUncoveredFiles="false" showOnlySummary="true"/>
+            <xml outputDirectory=".Build/phpunit_result/xml-coverage"/>
+        </report>
+    </coverage>
+
+    <logging>
+        <testdoxHtml outputFile=".Build/phpunit_result/coverage_log.html"/>
+        <testdoxText outputFile=".Build/phpunit_result/coverage_log.txt"/>
+        <testdoxXml outputFile=".Build/phpunit_result/coverage_log.xml"/>
+    </logging>
+</phpunit>

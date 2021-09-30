@@ -26,7 +26,7 @@ abstract class BaseAdapter implements SingletonInterface, AdapterInterface
 
     public function getRequireJsNamespace(): string
     {
-        return 'TYPO3/CMS/CPSMyraCloud/ContextMenuActions';
+        return 'TYPO3/CMS/CpsMyraCloud/ContextMenuActions';
     }
 
     public function getRequireJsFunction(): string

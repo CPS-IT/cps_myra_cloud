@@ -31,7 +31,7 @@
   },
   "autoload-dev": {
     "psr-4": {
-      "CPSIT\\CpsMyraCloud\\Tests\\": "Tests"
+      "CPSIT\\CpsMyraCloud\\Tests\\": "Tests/"
     }
   },
   "extra": {

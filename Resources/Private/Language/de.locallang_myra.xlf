@@ -12,8 +12,8 @@
                 <target>Clear Cache for MyraCloud</target>
             </trans-unit>
             <trans-unit id="tca.site.cache.identifier" resname="tca.site.cache.identifier">
-                <source>Myra Hostname</source>
-                <target>Myra Hostname</target>
+                <source>Myra Domain</source>
+                <target>Myra Domain</target>
             </trans-unit>
 		</body>
 	</file>
