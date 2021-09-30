@@ -1,11 +1,11 @@
 <?php
 declare(strict_types=1);
 
-namespace Fr\MyraCloud\Controller;
+namespace CPSIT\CpsMyraCloud\Controller;
 
-use Fr\MyraCloud\Service\ExternalCacheService;
-use Fr\MyraCloud\Service\PageService;
-use Fr\MyraCloud\Service\SiteService;
+use CPSIT\CpsMyraCloud\Service\ExternalCacheService;
+use CPSIT\CpsMyraCloud\Service\PageService;
+use CPSIT\CpsMyraCloud\Service\SiteService;
 use Psr\Http\Message\ResponseFactoryInterface;
 use Psr\Http\Message\ResponseInterface;
 use Psr\Http\Message\ServerRequestInterface;

@@ -1,14 +1,14 @@
 /**
- * Module: TYPO3/CMS/fr_myra_cloud/ContextMenuActions
+ * Module: TYPO3/CMS/cps_myra_cloud/ContextMenuActions
  *
  * JavaScript to handle the click action of the "Hello World" context menu item
- * @exports TYPO3/CMS/fr_myra_cloud/ContextMenuActions
+ * @exports TYPO3/CMS/cps_myra_cloud/ContextMenuActions
  */
 define(['TYPO3/CMS/Core/Ajax/AjaxRequest', 'TYPO3/CMS/Backend/Notification'], function (AjaxRequest, Typo3Notification) {
     'use strict';
 
     /**
-     * @exports TYPO3/CMS/fr_myra_cloud/ContextMenuActions
+     * @exports TYPO3/CMS/cps_myra_cloud/ContextMenuActions
      */
     let ContextMenuActions = {};
 

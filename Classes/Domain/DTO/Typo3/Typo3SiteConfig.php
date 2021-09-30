@@ -1,14 +1,13 @@
 <?php
 declare(strict_types=1);
 
-namespace Fr\MyraCloud\Domain\DTO\Typo3;
+namespace CPSIT\CpsMyraCloud\Domain\DTO\Typo3;
 
 use TYPO3\CMS\Core\Site\Entity\SiteInterface;
 
 class Typo3SiteConfig implements SiteConfigInterface
 {
     private string $externalId = '';
-    private string $base;
 
     /**
      * @param SiteInterface $site
@@ -17,7 +16,6 @@ class Typo3SiteConfig implements SiteConfigInterface
     {
         if (method_exists($site, 'getConfiguration'))
             $this->externalId = $site->getConfiguration()['myra_host']??'';
-        $this->base = $site->getBase()->getHost();
     }
 
     /**

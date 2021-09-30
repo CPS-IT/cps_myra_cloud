@@ -1,9 +1,9 @@
 <?php
 declare(strict_types=1);
 
-namespace Fr\MyraCloud\Domain\DTO\Provider;
+namespace CPSIT\CpsMyraCloud\Domain\DTO\Provider;
 
-use Fr\MyraCloud\Adapter\AdapterInterface;
+use CPSIT\CpsMyraCloud\Adapter\AdapterInterface;
 
 class ProviderItem implements ProviderItemRegisterInterface
 {

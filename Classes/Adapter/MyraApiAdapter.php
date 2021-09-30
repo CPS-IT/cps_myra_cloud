@@ -1,11 +1,11 @@
 <?php
 declare(strict_types=1);
 
-namespace Fr\MyraCloud\Adapter;
+namespace CPSIT\CpsMyraCloud\Adapter;
 
-use Fr\MyraCloud\Domain\DTO\Typo3\PageSlugInterface;
-use Fr\MyraCloud\Domain\DTO\Typo3\SiteConfigExternalIdentifierInterface;
-use Fr\MyraCloud\Domain\DTO\Typo3\SiteConfigInterface;
+use CPSIT\CpsMyraCloud\Domain\DTO\Typo3\PageSlugInterface;
+use CPSIT\CpsMyraCloud\Domain\DTO\Typo3\SiteConfigExternalIdentifierInterface;
+use CPSIT\CpsMyraCloud\Domain\DTO\Typo3\SiteConfigInterface;
 use GuzzleHttp\Client;
 use GuzzleHttp\ClientInterface;
 use GuzzleHttp\Exception\GuzzleException;
@@ -28,22 +28,22 @@ class MyraApiAdapter extends BaseAdapter
 
     public function getCacheId(): string
     {
-        return 'fr_myra_cloud';
+        return 'cps_myra_cloud';
     }
 
     public function getCacheIconIdentifier(): string
     {
-        return 'fr-cache-myra';
+        return 'cps-cache-myra';
     }
 
     public function getCacheTitle(): string
     {
-        return 'LLL:EXT:fr_myra_cloud/Resources/Private/Language/locallang_myra.xlf:title';
+        return 'LLL:EXT:cps_myra_cloud/Resources/Private/Language/locallang_myra.xlf:title';
     }
 
     public function getCacheDescription(): string
     {
-        return 'LLL:EXT:fr_myra_cloud/Resources/Private/Language/locallang_myra.xlf:description';
+        return 'LLL:EXT:cps_myra_cloud/Resources/Private/Language/locallang_myra.xlf:description';
     }
 
     protected function getAdapterConfigPrefix(): string

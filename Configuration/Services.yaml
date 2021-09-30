@@ -4,12 +4,12 @@ services:
     autoconfigure: true
     public: false
 
-  Fr\MyraCloud\:
+  CPSIT\CpsMyraCloud\:
     resource: '../Classes/*'
     exclude: ['../Classes/Domain/{DTO,Enum}']
 
-  Fr\MyraCloud\ButtonBar\ExternalClearCacheButtonBarItemProvider:
+  CPSIT\CpsMyraCloud\ButtonBar\ExternalClearCacheButtonBarItemProvider:
     public: true
 
-  Fr\MyraCloud\Controller\ExternalClearCacheController:
+  CPSIT\CpsMyraCloud\Controller\ExternalClearCacheController:
     public: true

@@ -1,9 +1,9 @@
 <?php
 declare(strict_types=1);
 
-namespace Fr\MyraCloud\CacheActionMenu;
+namespace CPSIT\CpsMyraCloud\CacheActionMenu;
 
-use Fr\MyraCloud\Provider\ExternalCacheProvider;
+use CPSIT\CpsMyraCloud\AdapterProvider\ExternalCacheProvider;
 use TYPO3\CMS\Backend\Routing\UriBuilder;
 use TYPO3\CMS\Backend\Toolbar\ClearCacheActionsHookInterface;
 use TYPO3\CMS\Core\Utility\GeneralUtility;

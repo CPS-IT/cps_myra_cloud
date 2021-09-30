@@ -1,7 +1,7 @@
 <?php
 
 $GLOBALS['SiteConfiguration']['site']['columns']['myra_host'] = [
-    'label' => 'LLL:EXT:fr_myra_cloud/Resources/Private/Language/locallang_myra.xlf:tca.site.cache.identifier',
+    'label' => 'LLL:EXT:cps_myra_cloud/Resources/Private/Language/locallang_myra.xlf:tca.site.cache.identifier',
     'config' => [
         'type' => 'input',
         'default' => '',

@@ -1,13 +1,13 @@
 <?php
 declare(strict_types=1);
 
-namespace Fr\MyraCloud\Domain\Repository;
+namespace CPSIT\CpsMyraCloud\Domain\Repository;
 
 use BR\Toolkit\Typo3\VersionWrapper\InstanceUtility;
 use Doctrine\DBAL\Connection;
 use Doctrine\DBAL\ParameterType;
-use Fr\MyraCloud\Domain\DTO\Typo3\Page;
-use Fr\MyraCloud\Domain\DTO\Typo3\PageInterface;
+use CPSIT\CpsMyraCloud\Domain\DTO\Typo3\Page;
+use CPSIT\CpsMyraCloud\Domain\DTO\Typo3\PageInterface;
 use TYPO3\CMS\Core\Database\ConnectionPool;
 use TYPO3\CMS\Core\Database\Query\QueryBuilder;
 
@@ -18,10 +18,10 @@ class PageRepository
      * @return QueryBuilder
      * @throws \TYPO3\CMS\Extbase\Object\Exception
      */
-    private function getQueryBuilder(string $table): QueryBuilder
+    private function getQueryBuilder(): QueryBuilder
     {
         /** @var QueryBuilder $query */
-        $query = InstanceUtility::get(ConnectionPool::class)->getQueryBuilderForTable($table);
+        $query = InstanceUtility::get(ConnectionPool::class)->getQueryBuilderForTable('pages');
         return $query;
     }
 
@@ -33,7 +33,7 @@ class PageRepository
      */
     public function getPageWithUid(int $pageUid): ?PageInterface
     {
-        $qb = $this->getQueryBuilder('pages');
+        $qb = $this->getQueryBuilder();
         $qb->getRestrictions()->removeAll();
         $qb->select('p.uid', 'p.title', 'p.hidden', 'p.doktype', 'p.slug');
         $qb->from('pages', 'p');

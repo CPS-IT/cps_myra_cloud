@@ -7,8 +7,8 @@ if (!defined('TYPO3_MODE')) {
 if (TYPO3_MODE == 'BE') {
     call_user_func(function ($extKey) {
 
-        $GLOBALS['TYPO3_CONF_VARS']['SC_OPTIONS']['Backend\Template\Components\ButtonBar']['getButtonsHook'][$extKey.'_clearCache'] = Fr\MyraCloud\ButtonBar\ExternalClearCacheButtonBarItemProvider::class . '->clearPageCache';
-        $GLOBALS['TYPO3_CONF_VARS']['BE']['ContextMenu']['ItemProviders'][$extKey.'_clearCache'] = Fr\MyraCloud\ContextMenu\ExternalClearCacheContextMenuItemProvider::class;
-        $GLOBALS['TYPO3_CONF_VARS']['SC_OPTIONS']['additionalBackendItems']['cacheActions'][$extKey.'_clearCache'] = Fr\MyraCloud\CacheActionMenu\ExternalClearCacheMenuItemProvider::class;
-    }, 'fr_myra_cloud');
+        $GLOBALS['TYPO3_CONF_VARS']['SC_OPTIONS']['Backend\Template\Components\ButtonBar']['getButtonsHook'][$extKey.'_clearCache'] = CPSIT\CpsMyraCloud\ButtonBar\ExternalClearCacheButtonBarItemProvider::class . '->clearPageCache';
+        $GLOBALS['TYPO3_CONF_VARS']['BE']['ContextMenu']['ItemProviders'][$extKey.'_clearCache'] = CPSIT\CpsMyraCloud\ContextMenu\ExternalClearCacheContextMenuItemProvider::class;
+        $GLOBALS['TYPO3_CONF_VARS']['SC_OPTIONS']['additionalBackendItems']['cacheActions'][$extKey.'_clearCache'] = CPSIT\CpsMyraCloud\CacheActionMenu\ExternalClearCacheMenuItemProvider::class;
+    }, 'cps_myra_cloud');
 }

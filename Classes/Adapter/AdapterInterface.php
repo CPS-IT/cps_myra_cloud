@@ -1,10 +1,10 @@
 <?php
 declare(strict_types=1);
 
-namespace Fr\MyraCloud\Adapter;
+namespace CPSIT\CpsMyraCloud\Adapter;
 
-use Fr\MyraCloud\Domain\DTO\Typo3\PageSlugInterface;
-use Fr\MyraCloud\Domain\DTO\Typo3\SiteConfigInterface;
+use CPSIT\CpsMyraCloud\Domain\DTO\Typo3\PageSlugInterface;
+use CPSIT\CpsMyraCloud\Domain\DTO\Typo3\SiteConfigInterface;
 
 interface AdapterInterface extends AdapterRegisterInterface
 {

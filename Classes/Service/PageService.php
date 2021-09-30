@@ -1,11 +1,11 @@
 <?php
 declare(strict_types=1);
 
-namespace Fr\MyraCloud\Service;
+namespace CPSIT\CpsMyraCloud\Service;
 
 use BR\Toolkit\Typo3\Cache\CacheService;
-use Fr\MyraCloud\Domain\DTO\Typo3\PageInterface;
-use Fr\MyraCloud\Domain\Repository\PageRepository;
+use CPSIT\CpsMyraCloud\Domain\DTO\Typo3\PageInterface;
+use CPSIT\CpsMyraCloud\Domain\Repository\PageRepository;
 use TYPO3\CMS\Core\SingletonInterface;
 
 class PageService implements SingletonInterface

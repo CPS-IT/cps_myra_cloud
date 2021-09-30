@@ -1,11 +1,11 @@
 <?php
 declare(strict_types=1);
 
-namespace Fr\MyraCloud\ContextMenu;
+namespace CPSIT\CpsMyraCloud\ContextMenu;
 
 use BR\Toolkit\Typo3\VersionWrapper\InstanceUtility;
-use Fr\MyraCloud\Provider\ExternalCacheProvider;
-use Fr\MyraCloud\Service\PageService;
+use CPSIT\CpsMyraCloud\AdapterProvider\ExternalCacheProvider;
+use CPSIT\CpsMyraCloud\Service\PageService;
 use TYPO3\CMS\Backend\ContextMenu\ItemProviders\AbstractProvider;
 
 class ExternalClearCacheContextMenuItemProvider extends AbstractProvider

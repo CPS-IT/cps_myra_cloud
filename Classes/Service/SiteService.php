@@ -1,12 +1,13 @@
 <?php
+declare(strict_types=1);
 
-namespace Fr\MyraCloud\Service;
+namespace CPSIT\CpsMyraCloud\Service;
 
 use BR\Toolkit\Typo3\Cache\CacheService;
-use Fr\MyraCloud\Domain\DTO\Typo3\PageIdInterface;
-use Fr\MyraCloud\Domain\DTO\Typo3\SiteConfigExternalIdentifierInterface;
-use Fr\MyraCloud\Domain\DTO\Typo3\SiteConfigInterface;
-use Fr\MyraCloud\Domain\DTO\Typo3\Typo3SiteConfig;
+use CPSIT\CpsMyraCloud\Domain\DTO\Typo3\PageIdInterface;
+use CPSIT\CpsMyraCloud\Domain\DTO\Typo3\SiteConfigExternalIdentifierInterface;
+use CPSIT\CpsMyraCloud\Domain\DTO\Typo3\SiteConfigInterface;
+use CPSIT\CpsMyraCloud\Domain\DTO\Typo3\Typo3SiteConfig;
 use TYPO3\CMS\Core\SingletonInterface;
 use TYPO3\CMS\Core\Site\SiteFinder;
 

@@ -1,7 +1,7 @@
 <?php
 declare(strict_types=1);
 
-namespace Fr\MyraCloud\Adapter;
+namespace CPSIT\CpsMyraCloud\Adapter;
 
 use BR\Toolkit\Typo3\Cache\CacheService;
 use TYPO3\CMS\Core\Configuration\ExtensionConfiguration;
@@ -26,7 +26,7 @@ abstract class BaseAdapter implements SingletonInterface, AdapterInterface
 
     public function getRequireJsNamespace(): string
     {
-        return 'TYPO3/CMS/FrMyraCloud/ContextMenuActions';
+        return 'TYPO3/CMS/CPSMyraCloud/ContextMenuActions';
     }
 
     public function getRequireJsFunction(): string
@@ -82,7 +82,7 @@ abstract class BaseAdapter implements SingletonInterface, AdapterInterface
 
         $data = [];
         try {
-            $data = $this->extensionConfiguration->get('fr_myra_cloud');
+            $data = $this->extensionConfiguration->get('cps_myra_cloud');
         } catch (\Exception $e) {}
 
         foreach ($data as $key => $value) {

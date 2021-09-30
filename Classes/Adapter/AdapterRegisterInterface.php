@@ -1,7 +1,7 @@
 <?php
 declare(strict_types=1);
 
-namespace Fr\MyraCloud\Adapter;
+namespace CPSIT\CpsMyraCloud\Adapter;
 
 interface AdapterRegisterInterface
 {

@@ -1,11 +1,11 @@
 <?php
 declare(strict_types=1);
 
-namespace Fr\MyraCloud\ButtonBar;
+namespace CPSIT\CpsMyraCloud\ButtonBar;
 
 
-use Fr\MyraCloud\Provider\ExternalCacheProvider;
-use Fr\MyraCloud\Service\PageService;
+use CPSIT\CpsMyraCloud\AdapterProvider\ExternalCacheProvider;
+use CPSIT\CpsMyraCloud\Service\PageService;
 use Psr\Http\Message\ServerRequestInterface;
 use TYPO3\CMS\Backend\Template\Components\ButtonBar;
 use TYPO3\CMS\Core\Http\ServerRequest;

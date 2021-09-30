@@ -1,10 +1,10 @@
 <?php
 declare(strict_types=1);
 
-namespace Fr\MyraCloud\Service;
+namespace CPSIT\CpsMyraCloud\Service;
 
 
-use Fr\MyraCloud\Provider\ExternalCacheProvider;
+use CPSIT\CpsMyraCloud\AdapterProvider\ExternalCacheProvider;
 
 class ExternalCacheService
 {
