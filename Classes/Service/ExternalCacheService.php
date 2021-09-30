@@ -5,6 +5,7 @@ namespace CPSIT\CpsMyraCloud\Service;
 
 
 use CPSIT\CpsMyraCloud\AdapterProvider\ExternalCacheProvider;
+use CPSIT\CpsMyraCloud\Domain\Enum\Typo3CacheType;
 
 class ExternalCacheService
 {
@@ -21,12 +22,21 @@ class ExternalCacheService
         $this->siteService = $siteService;
     }
 
+    public function clear(int $type, string $identifier, bool $clearAll): bool
+    {
+        if ($type === Typo3CacheType::PAGE) {
+            return $this->clearPage((int)$identifier, $clearAll);
+        }
+
+        return false;
+    }
+
     /**
      * @param int $pageUid
      * @param bool $clearAll
      * @return bool
      */
-    public function clearPage(int $pageUid, bool $clearAll = false): bool
+    private function clearPage(int $pageUid, bool $clearAll = false): bool
     {
         $page = $this->pageService->getPage($pageUid);
         $sites = $this->siteService->getSitesForClearance($page, $clearAll);
@@ -35,11 +45,11 @@ class ExternalCacheService
         $result = 0;
         if ($clearAll) {
             foreach ($sites as $site) {
-                $result |= $providerItem->getAdapter()->clearSiteCache($site);
+                //$result |= $providerItem->getAdapter()->clearSiteCache($site);
             }
         } elseif ($page) {
             foreach ($sites as $site) {
-                $result |= $providerItem->getAdapter()->clearPageCache($site, $page);
+                //$result |= $providerItem->getAdapter()->clearPageCache($site, $page);
             }
         }
 

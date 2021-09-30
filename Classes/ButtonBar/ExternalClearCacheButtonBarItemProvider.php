@@ -5,6 +5,7 @@ namespace CPSIT\CpsMyraCloud\ButtonBar;
 
 
 use CPSIT\CpsMyraCloud\AdapterProvider\ExternalCacheProvider;
+use CPSIT\CpsMyraCloud\Domain\Enum\Typo3CacheType;
 use CPSIT\CpsMyraCloud\Service\PageService;
 use Psr\Http\Message\ServerRequestInterface;
 use TYPO3\CMS\Backend\Template\Components\ButtonBar;
@@ -18,6 +19,9 @@ class ExternalClearCacheButtonBarItemProvider
 {
     private PageService $pageService;
     private IconFactory $iconFactory;
+
+    private int $cacheTypeCache = Typo3CacheType::UNKNOWN;
+    private string $cacheId = '';
 
     /**
      * @param PageService $pageService
@@ -46,14 +50,12 @@ class ExternalClearCacheButtonBarItemProvider
         $provider = ExternalCacheProvider::getDefaultProviderItem();
         if ($provider && $provider->canExecute()) {
             $lang = $this->getLanguageService();
-            $uid = $this->getPageUid();
             $clearCacheButton = $buttonBar->makeLinkButton();
             $clearCacheButton->setIcon($this->iconFactory->getIcon($provider->getCacheIconIdentifier(), Icon::SIZE_SMALL));
             $clearCacheButton->setTitle($lang->sL($provider->getCacheTitle()))
                 ->setHref('#')
-                ->setDataAttributes(['id' => $uid])
                 ->setClasses($provider->getTypo3CssClass())
-                ->setOnClick($provider->getRequireJsCall($uid));
+                ->setOnClick($provider->getRequireJsCall($this->getIdentifier(), $this->getCacheType()));
 
             if (!isset($buttons[ButtonBar::BUTTON_POSITION_RIGHT])) {
                 $buttons[ButtonBar::BUTTON_POSITION_RIGHT] = [];
@@ -76,11 +78,26 @@ class ExternalClearCacheButtonBarItemProvider
     }
 
     /**
-     * @return int
+     * @return string
      */
-    private function getPageUid(): int
+    private function getIdentifier(): string
     {
-        return (int)($this->getRequest()->getQueryParams()['id']??0);
+        if ($this->cacheId !== '')
+            return $this->cacheId;
+
+        $id = (string)($this->getRequest()->getQueryParams()['id']??'');
+        if ($this->getCacheType() === Typo3CacheType::PAGE) {
+            if(!is_numeric($id))
+                return '';
+
+            return $this->cacheId = $id;
+        } elseif ($this->getCacheType() === Typo3CacheType::FILEADMIN) {
+            if (strpos($id, '1:/') === 0) {
+                return $this->cacheId = substr($id, 2);
+            }
+        }
+
+        return '';
     }
 
     /**
@@ -98,12 +115,18 @@ class ExternalClearCacheButtonBarItemProvider
      */
     private function isPageTypeSupported(): bool
     {
-        $pageUid = $this->getPageUid();
-        if ($pageUid <= 0) {
-            return false;
+        if ($this->getCacheType() === Typo3CacheType::PAGE) {
+            $pageUid = (int)$this->getIdentifier();
+            if ($pageUid <= 0)
+                return false;
+
+            return $this->pageService->getPage($pageUid) !== null;
+        } elseif ($this->getCacheType() === Typo3CacheType::FILEADMIN) {
+            $path = $this->getIdentifier();
+            return !empty($path);
         }
 
-        return $this->pageService->getPage($pageUid) !== null;
+        return false;
     }
 
     /**
@@ -111,12 +134,38 @@ class ExternalClearCacheButtonBarItemProvider
      */
     private function isModuleSupported(): bool
     {
-        $route = $this->getRequest()->getQueryParams()['route']??'';
-        return in_array($route, [
+        return $this->getCacheType() > Typo3CacheType::UNKNOWN;
+    }
+
+    /**
+     * @return int
+     */
+    private function getCacheType(): int
+    {
+        if ($this->cacheTypeCache !== Typo3CacheType::UNKNOWN) {
+            return $this->cacheTypeCache;
+        }
+
+        $route = $this->getBackendRoute();
+        if ($route === '/module/file/FilelistList') {
+            return $this->cacheTypeCache = Typo3CacheType::FILEADMIN;
+        } elseif (in_array($route, [
             '/module/web/layout',
             '/module/web/list',
-            '/module/web/ViewpageView',
-        ]);
+            '/module/web/ViewpageView'
+        ])) {
+            return $this->cacheTypeCache = Typo3CacheType::PAGE;
+        }
+
+        return $this->cacheTypeCache = Typo3CacheType::INVALID;
+    }
+
+    /**
+     * @return string
+     */
+    private function getBackendRoute(): string
+    {
+        return $this->getRequest()->getQueryParams()['route']??'';
     }
 
     /**

@@ -12,15 +12,25 @@ define(['TYPO3/CMS/Core/Ajax/AjaxRequest', 'TYPO3/CMS/Backend/Notification'], fu
      */
     let ContextMenuActions = {};
 
+    ContextMenuActions.ClearPageViaContextMenu = function (table, id) {
+        let type = 0; // UNKNOWN
+        if (table === 'pages')
+            type = 1; // PAGE
+
+        ContextMenuActions.ClearExternalCache(type, id);
+    }
+
     /**
-     * @param {string} table
-     * @param {int} uid of the page
+     * @param {int} type
+     * @param id
      */
-    ContextMenuActions.ClearExternalCache = function (table, uid) {
-        if (table === 'pages') {
+    ContextMenuActions.ClearExternalCache = function (type, id) {
+        if (type > 0) {
+            let errMsg = 'An error occurred while clearing the cache. It is likely not all caches were cleared as expected.';
+            let errTitle = 'An error occurred';
             try {
                 let request = new AjaxRequest(TYPO3.settings.ajaxUrls.external_cache_clear)
-                    .withQueryArguments({uid: uid})
+                    .withQueryArguments({id: id, type: type})
                     .get()
                     .then(async function (response) {
                         let res = await response.resolve();
@@ -28,18 +38,18 @@ define(['TYPO3/CMS/Core/Ajax/AjaxRequest', 'TYPO3/CMS/Backend/Notification'], fu
                             if (res.hasOwnProperty('status') && res.status) {
                                 Typo3Notification.success('Cache Clear', 'Successful', 2);
                             } else if (res.hasOwnProperty('status') && !res.status) {
-                                Typo3Notification.error('Clear Cache', res.message);
+                                Typo3Notification.error(errTitle, res.message);
                             } else {
-                                Typo3Notification.error('Clear Cache', 'Internal TYPO3 Error');
+                                Typo3Notification.error(errTitle, errMsg);
                             }
                         } catch (err) {
-                            Typo3Notification.error('Clear Cache', 'Unexpected Error');
+                            Typo3Notification.error(errTitle, errMsg);
                         }
                     }).catch(e => {
-                        Typo3Notification.error('Clear Cache', 'Internal TYPO3 Error');
+                        Typo3Notification.error(errTitle, errMsg);
                     });
             } catch (e) {
-                Typo3Notification.error('Clear Cache', 'Internal TYPO3 Error');
+                Typo3Notification.error(errTitle, errMsg);
             }
         }
     };

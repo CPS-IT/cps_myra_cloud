@@ -4,6 +4,7 @@ declare(strict_types=1);
 namespace CPSIT\CpsMyraCloud\Domain\DTO\Provider;
 
 use CPSIT\CpsMyraCloud\Adapter\AdapterInterface;
+use CPSIT\CpsMyraCloud\Domain\Enum\Typo3CacheType;
 
 class ProviderItem implements ProviderItemRegisterInterface
 {
@@ -52,9 +53,9 @@ class ProviderItem implements ProviderItemRegisterInterface
         return $this->getAdapter()->getRequireJsFunction();
     }
 
-    public function getRequireJsCall(int $id, string $table = 'pages'): string
+    public function getRequireJsCall(string $id, int $type = Typo3CacheType::UNKNOWN): string
     {
-        return 'require(["'. $this->getRequireJsNamespace() .'"],function(c){c.'. $this->getRequireJsFunction() .'(\''. $table .'\', ' . $id . ');});return false;';
+        return 'require(["'. $this->getRequireJsNamespace() .'"],function(c){c.'. $this->getRequireJsFunction() .'('. $type .', \'' . $id . '\');});return false;';
     }
 
     public function getTypo3CssClass(): string

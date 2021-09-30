@@ -3,9 +3,8 @@ declare(strict_types=1);
 
 namespace CPSIT\CpsMyraCloud\Controller;
 
+use CPSIT\CpsMyraCloud\Domain\Enum\Typo3CacheType;
 use CPSIT\CpsMyraCloud\Service\ExternalCacheService;
-use CPSIT\CpsMyraCloud\Service\PageService;
-use CPSIT\CpsMyraCloud\Service\SiteService;
 use Psr\Http\Message\ResponseFactoryInterface;
 use Psr\Http\Message\ResponseInterface;
 use Psr\Http\Message\ServerRequestInterface;
@@ -17,8 +16,7 @@ class ExternalClearCacheController
 
     /**
      * @param ResponseFactoryInterface $responseFactory
-     * @param PageService $pageService
-     * @param SiteService $siteService
+     * @param ExternalCacheService $externalCacheService
      */
     public function __construct(ResponseFactoryInterface $responseFactory, ExternalCacheService $externalCacheService)
     {
@@ -26,12 +24,18 @@ class ExternalClearCacheController
         $this->externalCacheService = $externalCacheService;
     }
 
+    /**
+     * @param ServerRequestInterface $request
+     * @return ResponseInterface
+     */
     public function clearPageCache(ServerRequestInterface $request): ResponseInterface
     {
         $clearAll = (bool)($request->getQueryParams()['clearAll']??false);
-        $pageUid = (int)($request->getQueryParams()['uid']??0);
-        $result = $this->externalCacheService->clearPage($pageUid, $clearAll);
+        $identifier = $request->getQueryParams()['id']??'0';
+        $type = (int)($request->getQueryParams()['type']??Typo3CacheType::UNKNOWN);
 
+        $result = false;
+        //$result = $this->externalCacheService->clear($type, $identifier, $clearAll);
 
         return $this->getJsonResponse(['status' => $result], (!$result?500:200));
     }

@@ -86,7 +86,7 @@ class ExternalClearCacheContextMenuItemProvider extends AbstractProvider
                 'type' => 'item',
                 'label' => $provider->getCacheTitle(),
                 'iconIdentifier' => $provider->getCacheIconIdentifier(),
-                'callbackAction' => $provider->getRequireJsFunction()
+                'callbackAction' => 'ClearPageViaContextMenu'
             ]
         ];
     }
