@@ -34,7 +34,7 @@ class PageService implements SingletonInterface
                 return $this->cacheService->cache(
                     'PageService_page_uid_' . $pageUid,
                     fn(): ?PageInterface => $this->pageRepository->getPageWithUid($pageUid),
-                    'PAGE_CONTEXT',
+                    'MYRA_CLOUD',
                     0
                 );
             } catch (\Exception | \Doctrine\DBAL\Driver\Exception $e) {

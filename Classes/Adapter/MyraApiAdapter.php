@@ -15,8 +15,6 @@ use GuzzleHttp\Middleware;
 use Myracloud\WebApi\Endpoint\AbstractEndpoint;
 use Myracloud\WebApi\Endpoint\CacheClear;
 use Myracloud\WebApi\Endpoint\DnsRecord;
-use Myracloud\WebApi\Endpoint\Domain;
-use Myracloud\WebApi\Endpoint\Statistic;
 use Myracloud\WebApi\Middleware\Signature;
 use Psr\Http\Message\RequestInterface;
 
@@ -71,6 +69,11 @@ class MyraApiAdapter extends BaseAdapter
         return (bool)$r;
     }
 
+    /**
+     * @param SiteConfigInterface $site
+     * @param PageSlugInterface $pageSlug
+     * @return bool
+     */
     public function clearPageCache(SiteConfigInterface $site, PageSlugInterface $pageSlug): bool
     {
         if (!$this->canExecute()) {
@@ -105,20 +108,32 @@ class MyraApiAdapter extends BaseAdapter
 
     /**
      * @param SiteConfigExternalIdentifierInterface $site
+     * @throws \BR\Toolkit\Exceptions\CacheException
      * @return string[]
      */
     private function getFqdnForSite(SiteConfigExternalIdentifierInterface $site): array
     {
-        $r = $this->getDomainRecordsForDomain($site->getExternalIdentifier());
-        $fqdn = [];
-        if (!empty($r) && $r['error'] === false) {
-            foreach ($r['list'] as $recordItem) {
-                $name = $recordItem['name'];
-                $fqdn[crc32($name)] = $name;
-            }
-        }
+        return $this->cacheService->cache(
+            'myra_getFqdnForSite_' . $site->getExternalIdentifier(),
+            function () use ($site) {
+                $r = $this->getDomainRecordsForDomain($site->getExternalIdentifier());
+                $fqdn = [];
+                if (!empty($r) && $r['error'] === false) {
+                    foreach ($r['list'] as $recordItem) {
+                        $name = $recordItem['name']??'';
+                        $active = (bool)($recordItem['active']??false);
+                        $enable = (bool)($recordItem['enabled']??false);
+                        if ($active && $enable && $name !== '') {
+                            $fqdn[crc32($name)] = $name;
+                        }
+                    }
+                }
 
-        return array_values($fqdn);
+                return array_values($fqdn);
+            },
+            'MYRA_CLOUD',
+            680000
+        );
     }
 
     /**

@@ -3,6 +3,7 @@ declare(strict_types=1);
 
 namespace Fr\MyraCloud\Adapter;
 
+use BR\Toolkit\Typo3\Cache\CacheService;
 use TYPO3\CMS\Core\Configuration\ExtensionConfiguration;
 use TYPO3\CMS\Core\Core\Environment;
 use TYPO3\CMS\Core\SingletonInterface;
@@ -10,13 +11,17 @@ use TYPO3\CMS\Core\SingletonInterface;
 abstract class BaseAdapter implements SingletonInterface, AdapterInterface
 {
     private ExtensionConfiguration $extensionConfiguration;
+    protected CacheService $cacheService;
+    private static array $configCache = [];
 
     /**
      * @param ExtensionConfiguration $extensionConfiguration
+     * @param CacheService $cacheService
      */
-    public function __construct(ExtensionConfiguration $extensionConfiguration)
+    public function __construct(ExtensionConfiguration $extensionConfiguration, CacheService $cacheService)
     {
         $this->extensionConfiguration = $extensionConfiguration;
+        $this->cacheService = $cacheService;
     }
 
     public function getRequireJsNamespace(): string
@@ -44,8 +49,20 @@ abstract class BaseAdapter implements SingletonInterface, AdapterInterface
      */
     public function canExecute(): bool
     {
-        $onlyLive = ($this->getAdapterConfig(true)['onlyLive']??'0') === '1';
-        return !($onlyLive && !Environment::getContext()->isProduction());
+        $allConfigData = $this->getAdapterConfig(true);
+        $onlyLive = ($allConfigData['onlyLive']??'0') === '1';
+        if ($onlyLive && !Environment::getContext()->isProduction()) {
+            return false;
+        }
+
+        foreach ($allConfigData as $key => $value) {
+            if (strpos($key, $this->getAdapterConfigPrefix()) === 0) {
+                if (empty($this->getRealAdapterConfigValue($value))) {
+                    return false;
+                }
+            }
+        }
+        return true;
     }
 
     /**
@@ -54,19 +71,33 @@ abstract class BaseAdapter implements SingletonInterface, AdapterInterface
      */
     protected function getAdapterConfig(bool $ignorePrefix = false): array
     {
+        $prefix = $this->getAdapterConfigPrefix();
+        if (!empty(self::$configCache)) {
+            if ($ignorePrefix) {
+                return self::$configCache['all'];
+            } elseif (!empty(self::$configCache[$prefix])) {
+                return self::$configCache[$prefix];
+            }
+        }
+
         $data = [];
         try {
             $data = $this->extensionConfiguration->get('fr_myra_cloud');
         } catch (\Exception $e) {}
 
-        $filterData = [];
         foreach ($data as $key => $value) {
-            if ($ignorePrefix || strpos($key, $this->getAdapterConfigPrefix()) === 0) {
-                $filterData[$key] = $this->getRealAdapterConfigValue($value);
+            $value = $this->getRealAdapterConfigValue($value);
+            self::$configCache['all'][$key] = $value;
+            if (strpos($key, $prefix) === 0) {
+                self::$configCache[$prefix][$key] = $value;
             }
         }
 
-        return $filterData;
+        if ($ignorePrefix) {
+            return self::$configCache['all'];
+        }
+
+        return self::$configCache[$prefix];
     }
 
     /**

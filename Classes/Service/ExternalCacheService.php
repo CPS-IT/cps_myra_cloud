@@ -30,7 +30,6 @@ class ExternalCacheService
     {
         $page = $this->pageService->getPage($pageUid);
         $sites = $this->siteService->getSitesForClearance($page, $clearAll);
-
         $providerItem = ExternalCacheProvider::getDefaultProviderItem();
 
         $result = 0;

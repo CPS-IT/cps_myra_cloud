@@ -7,7 +7,7 @@ use TYPO3\CMS\Core\Site\Entity\SiteInterface;
 
 interface SiteConfigInterface extends SiteConfigExternalIdentifierInterface
 {
-    public function getSite(): SiteInterface;
+    //public function getSite(): SiteInterface;
 
     //public function getFullyNamed(): array;
 }

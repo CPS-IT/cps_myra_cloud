@@ -29,7 +29,7 @@ class ExternalClearCacheContextMenuItemProvider extends AbstractProvider
      */
     public function canHandle(): bool
     {
-        if ($this->table === 'pages')
+        if ($this->table !== 'pages')
             return false;
 
         $provider = ExternalCacheProvider::getDefaultProviderItem();
@@ -37,10 +37,7 @@ class ExternalClearCacheContextMenuItemProvider extends AbstractProvider
             return false;
 
         $page = $this->pageService->getPage((int)$this->identifier);
-        if ($page === null)
-            return false;
-
-        return true;
+        return ($page !== null);
     }
 
     /**
