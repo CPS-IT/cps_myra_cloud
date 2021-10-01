@@ -67,4 +67,9 @@ class ProviderItem implements ProviderItemRegisterInterface
     {
         return $this->getAdapter()->canExecute();
     }
+
+    public function canInteract(): bool
+    {
+        return $this->getAdapter()->canInteract();
+    }
 }

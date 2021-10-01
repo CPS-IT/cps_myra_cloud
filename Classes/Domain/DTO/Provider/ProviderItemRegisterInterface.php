@@ -16,4 +16,6 @@ interface ProviderItemRegisterInterface extends AdapterRegisterInterface
     public function getTypo3CssClass(): string;
 
     public function canExecute(): bool;
+
+    public function canInteract(): bool;
 }

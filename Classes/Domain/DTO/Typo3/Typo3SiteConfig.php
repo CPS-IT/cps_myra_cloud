@@ -3,10 +3,13 @@ declare(strict_types=1);
 
 namespace CPSIT\CpsMyraCloud\Domain\DTO\Typo3;
 
+use CPSIT\CpsMyraCloud\Traits\DomainListParserTrait;
 use TYPO3\CMS\Core\Site\Entity\SiteInterface;
 
 class Typo3SiteConfig implements SiteConfigInterface
 {
+    use DomainListParserTrait;
+
     private array $myraDomainList;
 
     /**
@@ -17,8 +20,7 @@ class Typo3SiteConfig implements SiteConfigInterface
         $domainList = [];
         if (method_exists($site, 'getConfiguration')) {
             $domainListString = $site->getConfiguration()['myra_host']??'';
-            $rawList = explode(',', str_replace(' ', '', $domainListString));
-            $domainList = array_unique(array_filter($rawList?:[]));
+            $domainList = $this->parseCommaList($domainListString);
         }
 
         $this->myraDomainList = $domainList;

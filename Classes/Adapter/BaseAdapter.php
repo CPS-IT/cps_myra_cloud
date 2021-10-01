@@ -4,15 +4,21 @@ declare(strict_types=1);
 namespace CPSIT\CpsMyraCloud\Adapter;
 
 use BR\Toolkit\Typo3\Cache\CacheService;
+use CPSIT\CpsMyraCloud\Traits\DomainListParserTrait;
+use TYPO3\CMS\Core\Authentication\BackendUserAuthentication;
 use TYPO3\CMS\Core\Configuration\ExtensionConfiguration;
 use TYPO3\CMS\Core\Core\Environment;
+use TYPO3\CMS\Core\Http\ServerRequestFactory;
 use TYPO3\CMS\Core\SingletonInterface;
 
 abstract class BaseAdapter implements SingletonInterface, AdapterInterface
 {
+    use DomainListParserTrait;
+
     private ExtensionConfiguration $extensionConfiguration;
     protected CacheService $cacheService;
     private static array $configCache = [];
+    private static array $checkupCache = [];
 
     /**
      * @param ExtensionConfiguration $extensionConfiguration
@@ -49,20 +55,98 @@ abstract class BaseAdapter implements SingletonInterface, AdapterInterface
      */
     public function canExecute(): bool
     {
-        $allConfigData = $this->getAdapterConfig(true);
-        $onlyLive = ($allConfigData['onlyLive']??'0') === '1';
-        if ($onlyLive && !Environment::getContext()->isProduction()) {
-            return false;
+        return !(
+            !$this->setupConfigCondition() ||
+            !$this->liveOnlyCondition() ||
+            !$this->domainBlacklist()
+        );
+    }
+
+    /**
+     * @return bool
+     */
+    public function canInteract(): bool
+    {
+        return !(
+            !$this->adminOnlyCondition() ||
+            !$this->canExecute()
+        );
+    }
+
+    /**
+     * @return bool
+     */
+    private function adminOnlyCondition(): bool
+    {
+        if (isset(self::$checkupCache[__METHOD__])) {
+            return self::$checkupCache[__METHOD__];
         }
 
+        /** @var BackendUserAuthentication $backendUser */
+        $backendUser = $GLOBALS['BE_USER']??null;
+        if (!$backendUser)
+            return self::$checkupCache[__METHOD__] = false;
+
+        $allConfigData = $this->getAdapterConfig(true);
+        $only = ($allConfigData['onlyAdmin'] ?? '1') === '1';
+        if ($only)
+            return self::$checkupCache[__METHOD__] = $backendUser->isAdmin();
+
+        return self::$checkupCache[__METHOD__] = true;
+    }
+
+    /**
+     * @return bool
+     */
+    private function liveOnlyCondition(): bool
+    {
+        if (isset(self::$checkupCache[__METHOD__])) {
+            return self::$checkupCache[__METHOD__];
+        }
+
+        $allConfigData = $this->getAdapterConfig(true);
+        $only = ($allConfigData['onlyLive'] ?? '1') === '1';
+        if ($only)
+            return self::$checkupCache[__METHOD__] = Environment::getContext()->isProduction();
+
+        return self::$checkupCache[__METHOD__] = true;
+    }
+
+    /**
+     * @return bool
+     */
+    private function domainBlacklist(): bool
+    {
+        if (isset(self::$checkupCache[__METHOD__])) {
+            return self::$checkupCache[__METHOD__];
+        }
+
+        $blacklistString = $this->getAdapterConfig(true)['domainBlacklist'] ?? '';
+        $blackList = $this->parseCommaList($blacklistString);
+        $request = $GLOBALS['TYPO3_REQUEST'] ?? ServerRequestFactory::fromGlobals();
+        $currentDomainContext = $request->getUri()->getHost();
+        return self::$checkupCache[__METHOD__] = (empty($blackList) || !in_array($currentDomainContext, $blackList));
+    }
+
+    /**
+     * @return bool
+     */
+    private function setupConfigCondition(): bool
+    {
+        if (isset(self::$checkupCache[__METHOD__])) {
+            return self::$checkupCache[__METHOD__];
+        }
+
+        $allConfigData = $this->getAdapterConfig(true);
         foreach ($allConfigData as $key => $value) {
             if (strpos($key, $this->getAdapterConfigPrefix()) === 0) {
                 if (empty($this->getRealAdapterConfigValue($value))) {
-                    return false;
+                    return self::$checkupCache[__METHOD__] = false;
                 }
             }
         }
-        return true;
+
+        return self::$checkupCache[__METHOD__] = true;
     }
 
     /**

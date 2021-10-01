@@ -18,11 +18,6 @@ class ExternalClearCacheMenuItemProvider implements ClearCacheActionsHookInterfa
      */
     public function manipulateCacheActions(&$cacheActions, &$optionValues)
     {
-        $backendUser = $GLOBALS['BE_USER']??null;
-        if ($backendUser && !$backendUser->isAdmin()) {
-            return;
-        }
-
         $this->setClearAllCacheButton($cacheActions, $optionValues);
         $this->setClearAllResourcesCacheButton($cacheActions, $optionValues);
     }
@@ -35,7 +30,7 @@ class ExternalClearCacheMenuItemProvider implements ClearCacheActionsHookInterfa
     public function setClearAllCacheButton(array &$cacheActions, array &$optionValues): void
     {
         $provider = ExternalCacheProvider::getDefaultProviderItem();
-        if ($provider && $provider->canExecute()) {
+        if ($provider && $provider->canInteract()) {
             $uriBuilder = GeneralUtility::makeInstance(UriBuilder::class);
             $cacheActions[] = [
                 'id' => $provider->getCacheId(),
@@ -56,7 +51,7 @@ class ExternalClearCacheMenuItemProvider implements ClearCacheActionsHookInterfa
     public function setClearAllResourcesCacheButton(array &$cacheActions, array &$optionValues): void
     {
         $provider = ExternalCacheProvider::getDefaultProviderItem();
-        if ($provider && $provider->canExecute()) {
+        if ($provider && $provider->canInteract()) {
             $id = $provider->getCacheId().'_resources';
             $uriBuilder = GeneralUtility::makeInstance(UriBuilder::class);
             $cacheActions[] = [

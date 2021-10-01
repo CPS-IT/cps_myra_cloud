@@ -48,7 +48,7 @@ class ExternalClearCacheButtonBarItemProvider
         }
 
         $provider = ExternalCacheProvider::getDefaultProviderItem();
-        if ($provider && $provider->canExecute()) {
+        if ($provider && $provider->canInteract()) {
             $lang = $this->getLanguageService();
             $clearCacheButton = $buttonBar->makeLinkButton();
             $clearCacheButton->setIcon($this->iconFactory->getIcon($provider->getCacheIconIdentifier(), Icon::SIZE_SMALL));

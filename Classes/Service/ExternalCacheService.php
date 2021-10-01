@@ -6,6 +6,7 @@ namespace CPSIT\CpsMyraCloud\Service;
 
 use CPSIT\CpsMyraCloud\Adapter\AdapterInterface;
 use CPSIT\CpsMyraCloud\AdapterProvider\ExternalCacheProvider;
+use CPSIT\CpsMyraCloud\Domain\DTO\Provider\ProviderItemRegisterInterface;
 use CPSIT\CpsMyraCloud\Domain\DTO\Typo3\File\FileAdmin;
 use CPSIT\CpsMyraCloud\Domain\DTO\Typo3\File\Typo3Conf;
 use CPSIT\CpsMyraCloud\Domain\DTO\Typo3\File\Typo3Core;
@@ -36,72 +37,73 @@ class ExternalCacheService
      */
     public function clear(int $type, string $identifier): bool
     {
+        $providerItem = ExternalCacheProvider::getDefaultProviderItem();
+        if ($providerItem === null) {
+            return false;
+        }
+
         if ($type === Typo3CacheType::PAGE) {
-            return $this->clearPage((int)$identifier);
+            return $this->clearPage($providerItem, (int)$identifier);
         } elseif ($type === Typo3CacheType::FILE_ADMIN) {
-            return $this->clearFile($identifier);
+            return $this->clearFile($providerItem, $identifier);
         } elseif ($type === Typo3CacheType::ALL_PAGE) {
-            return $this->clearAllPages();
+            return $this->clearAllPages($providerItem);
         } elseif ($type === Typo3CacheType::ALL_RESOURCES) {
-            return $this->clearAllFiles();
+            return $this->clearAllFiles($providerItem);
         }
 
         return false;
     }
 
     /**
+     * @param ProviderItemRegisterInterface $provider
      * @param int $pageUid
      * @return bool
      */
-    private function clearPage(int $pageUid): bool
+    private function clearPage(ProviderItemRegisterInterface $provider, int $pageUid): bool
     {
         $page = $this->pageService->getPage($pageUid);
         $sites = $this->siteService->getSitesForClearance($page);
-        $providerItem = ExternalCacheProvider::getDefaultProviderItem();
-
-        return $this->clearCacheWithAdapter($providerItem->getAdapter(), $sites, $page);
+        return $this->clearCacheWithAdapter($provider->getAdapter(), $sites, $page);
     }
 
     /**
+     * @param ProviderItemRegisterInterface $provider
      * @return bool
      */
-    private function clearAllPages(): bool
+    private function clearAllPages(ProviderItemRegisterInterface $provider): bool
     {
         $sites = $this->siteService->getSitesForClearance(null, true);
-        $providerItem = ExternalCacheProvider::getDefaultProviderItem();
-
-        return $this->clearCacheWithAdapter($providerItem->getAdapter(), $sites, null, true);
+        return $this->clearCacheWithAdapter($provider->getAdapter(), $sites, null, true);
     }
 
     /**
+     * @param ProviderItemRegisterInterface $provider
      * @return bool
      */
-    private function clearAllFiles(): bool
+    private function clearAllFiles(ProviderItemRegisterInterface $provider): bool
     {
         $sites = $this->siteService->getSitesForClearance(null, true);
-        $providerItem = ExternalCacheProvider::getDefaultProviderItem();
         $fileCaches = [new FileAdmin(), new Typo3Temp(), new Typo3Conf(), new Typo3Core()];
-
         $result = 0;
         foreach ($fileCaches as $file) {
-            $result |= $this->clearCacheWithAdapter($providerItem->getAdapter(), $sites, $file, true);
+            $result |= $this->clearCacheWithAdapter($provider->getAdapter(), $sites, $file, true);
         }
 
         return (bool)$result;
     }
 
     /**
+     * @param ProviderItemRegisterInterface $provider
      * @param string $relPath
      * @return bool
      */
-    private function clearFile(string $relPath): bool
+    private function clearFile(ProviderItemRegisterInterface $provider, string $relPath): bool
     {
         $file = new FileAdmin($relPath);
         $sites = $this->siteService->getSitesForClearance(null, true);
-        $providerItem = ExternalCacheProvider::getDefaultProviderItem();
-
         // files are always recursive deleted
-        return $this->clearCacheWithAdapter($providerItem->getAdapter(), $sites, $file, true);
+        return $this->clearCacheWithAdapter($provider->getAdapter(), $sites, $file, true);
     }
 
     /**

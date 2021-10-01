@@ -35,7 +35,7 @@ class ExternalClearCacheContextMenuItemProvider extends AbstractProvider
             return false;
 
         $provider = ExternalCacheProvider::getDefaultProviderItem();
-        if ($provider === null || !$provider->canExecute())
+        if ($provider === null || !$provider->canInteract())
             return false;
 
         if ($type === Typo3CacheType::PAGE) {
