@@ -9,4 +9,5 @@ real documentation coming soon...
 * page hook for update, clear page
 * setting toggle option for disable/enable file/page automatic hook
 * ~~site myra_domain identifier comma separated (support multiple domains)~~
-
+* add Documentation
+* add Tests
