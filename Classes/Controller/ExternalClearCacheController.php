@@ -30,12 +30,10 @@ class ExternalClearCacheController
      */
     public function clearPageCache(ServerRequestInterface $request): ResponseInterface
     {
-        $clearAll = (bool)($request->getQueryParams()['clearAll']??false);
         $identifier = $request->getQueryParams()['id']??'0';
         $type = (int)($request->getQueryParams()['type']??Typo3CacheType::UNKNOWN);
 
-        $result = false;
-        //$result = $this->externalCacheService->clear($type, $identifier, $clearAll);
+        $result = $this->externalCacheService->clear($type, $identifier);
 
         return $this->getJsonResponse(['status' => $result], (!$result?500:200));
     }

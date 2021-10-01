@@ -5,6 +5,7 @@ namespace CPSIT\CpsMyraCloud\ContextMenu;
 
 use BR\Toolkit\Typo3\VersionWrapper\InstanceUtility;
 use CPSIT\CpsMyraCloud\AdapterProvider\ExternalCacheProvider;
+use CPSIT\CpsMyraCloud\Domain\Enum\Typo3CacheType;
 use CPSIT\CpsMyraCloud\Service\PageService;
 use TYPO3\CMS\Backend\ContextMenu\ItemProviders\AbstractProvider;
 
@@ -29,15 +30,45 @@ class ExternalClearCacheContextMenuItemProvider extends AbstractProvider
      */
     public function canHandle(): bool
     {
-        if ($this->table !== 'pages')
+        $type = $this->getCacheType();
+        if ($type <= Typo3CacheType::UNKNOWN)
             return false;
 
         $provider = ExternalCacheProvider::getDefaultProviderItem();
         if ($provider === null || !$provider->canExecute())
             return false;
 
-        $page = $this->pageService->getPage((int)$this->identifier);
-        return ($page !== null);
+        if ($type === Typo3CacheType::PAGE) {
+            $page = $this->pageService->getPage((int)$this->getIdentifier());
+            return ($page !== null);
+        } elseif ($type === Typo3CacheType::FILE_ADMIN) {
+            return !empty($this->getIdentifier());
+        }
+
+        return false;
+    }
+
+    /**
+     * @return string
+     */
+    protected function getIdentifier(): string
+    {
+        $id = $this->identifier;
+        $type = $this->getCacheType();
+        if ($type === Typo3CacheType::PAGE) {
+            if(!is_numeric($id))
+                return '';
+
+            return $id;
+        } elseif ($type === Typo3CacheType::FILE_ADMIN) {
+            if (strpos($id, '1:/') === 0) {
+                return substr($id, 2);
+            } else {
+                return '/';
+            }
+        }
+
+        return '';
     }
 
     /**
@@ -91,6 +122,28 @@ class ExternalClearCacheContextMenuItemProvider extends AbstractProvider
         ];
     }
 
+    /**
+     * @return int
+     */
+    private function getCacheType(): int
+    {
+        if ($this->table === 'pages') {
+            return Typo3CacheType::PAGE;
+        } elseif (in_array($this->table, [
+            'sys_file',
+            'sys_file_storage'
+        ])) {
+            return Typo3CacheType::FILE_ADMIN;
+        }
+
+        return Typo3CacheType::INVALID;
+    }
+
+    /**
+     * @param string $itemName
+     * @param string $type
+     * @return bool
+     */
     protected function canRender(string $itemName, string $type): bool
     {
         if (in_array($itemName, $this->disabledItems, true)) {

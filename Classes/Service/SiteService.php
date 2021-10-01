@@ -95,6 +95,6 @@ class SiteService implements SingletonInterface
      */
     private function isSiteSupported(SiteConfigExternalIdentifierInterface $site): bool
     {
-        return !empty($site->getExternalIdentifier());
+        return !empty($site->getExternalIdentifierList());
     }
 }

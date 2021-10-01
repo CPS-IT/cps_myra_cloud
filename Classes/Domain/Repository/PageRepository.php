@@ -14,7 +14,6 @@ use TYPO3\CMS\Core\Database\Query\QueryBuilder;
 class PageRepository
 {
     /**
-     * @param string $table
      * @return QueryBuilder
      * @throws \TYPO3\CMS\Extbase\Object\Exception
      */

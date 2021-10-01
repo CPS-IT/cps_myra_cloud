@@ -10,7 +10,5 @@ interface AdapterInterface extends AdapterRegisterInterface
 {
     public function canExecute(): bool;
 
-    public function clearSiteCache(SiteConfigInterface $site): bool;
-
-    public function clearPageCache(SiteConfigInterface $site, PageSlugInterface $pageSlug): bool;
+    public function clearCache(SiteConfigInterface $site, ?PageSlugInterface $pageSlug = null, bool $recursive = false): bool;
 }

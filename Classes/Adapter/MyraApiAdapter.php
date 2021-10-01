@@ -53,37 +53,28 @@ class MyraApiAdapter extends BaseAdapter
 
     /**
      * @param SiteConfigInterface $site
+     * @param PageSlugInterface|null $pageSlug
+     * @param bool $recursive
      * @return bool
+     * @throws \BR\Toolkit\Exceptions\CacheException
      */
-    public function clearSiteCache(SiteConfigInterface $site): bool
+    public function clearCache(SiteConfigInterface $site, ?PageSlugInterface $pageSlug = null, bool $recursive = false): bool
     {
         if (!$this->canExecute()) {
             return false;
         }
 
         $r = false;
-        foreach ($this->getFqdnForSite($site) as $domain) {
-            $r |= $this->clearCacheDomain($site->getExternalIdentifier(), $domain, '/', true);
+        // if no slug provided / clear root
+        $slug = ($pageSlug !== null) ? $pageSlug->getSlug() : '/';
+
+        foreach ($site->getExternalIdentifierList() as $domainIdentifier) {
+            foreach ($this->getFqdnForSite($domainIdentifier) as $subDomain) {
+                $r |= $this->clearCacheDomain($domainIdentifier, $subDomain, $slug, $recursive);
+            }
         }
 
-        return (bool)$r;
-    }
 
-    /**
-     * @param SiteConfigInterface $site
-     * @param PageSlugInterface $pageSlug
-     * @return bool
-     */
-    public function clearPageCache(SiteConfigInterface $site, PageSlugInterface $pageSlug): bool
-    {
-        if (!$this->canExecute()) {
-            return false;
-        }
-
-        $r = false;
-        foreach ($this->getFqdnForSite($site) as $domain) {
-            $r |= $this->clearCacheDomain($site->getExternalIdentifier(), $domain, $pageSlug->getSlug());
-        }
 
         return (bool)$r;
     }
@@ -107,16 +98,16 @@ class MyraApiAdapter extends BaseAdapter
     }
 
     /**
-     * @param SiteConfigExternalIdentifierInterface $site
-     * @throws \BR\Toolkit\Exceptions\CacheException
+     * @param string $domainIdentifier
      * @return string[]
+     * @throws \BR\Toolkit\Exceptions\CacheException
      */
-    private function getFqdnForSite(SiteConfigExternalIdentifierInterface $site): array
+    private function getFqdnForSite(string $domainIdentifier): array
     {
         return $this->cacheService->cache(
-            'myra_getFqdnForSite_' . $site->getExternalIdentifier(),
-            function () use ($site) {
-                $r = $this->getDomainRecordsForDomain($site->getExternalIdentifier());
+            'myra_getFqdnForSite_' . $domainIdentifier,
+            function () use ($domainIdentifier) {
+                $r = $this->getDomainRecordsForDomain($domainIdentifier);
                 $fqdn = [];
                 if (!empty($r) && $r['error'] === false) {
                     foreach ($r['list'] as $recordItem) {

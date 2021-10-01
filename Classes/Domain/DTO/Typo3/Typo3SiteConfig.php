@@ -7,22 +7,28 @@ use TYPO3\CMS\Core\Site\Entity\SiteInterface;
 
 class Typo3SiteConfig implements SiteConfigInterface
 {
-    private string $externalId = '';
+    private array $myraDomainList;
 
     /**
      * @param SiteInterface $site
      */
     public function __construct(SiteInterface $site)
     {
-        if (method_exists($site, 'getConfiguration'))
-            $this->externalId = $site->getConfiguration()['myra_host']??'';
+        $domainList = [];
+        if (method_exists($site, 'getConfiguration')) {
+            $domainListString = $site->getConfiguration()['myra_host']??'';
+            $rawList = explode(',', str_replace(' ', '', $domainListString));
+            $domainList = array_unique(array_filter($rawList?:[]));
+        }
+
+        $this->myraDomainList = $domainList;
     }
 
     /**
-     * @return string
+     * @return array
      */
-    public function getExternalIdentifier(): string
+    public function getExternalIdentifierList(): array
     {
-        return $this->externalId;
+        return $this->myraDomainList;
     }
 }

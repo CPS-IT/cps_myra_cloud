@@ -5,5 +5,5 @@ namespace CPSIT\CpsMyraCloud\Domain\DTO\Typo3;
 
 interface SiteConfigExternalIdentifierInterface
 {
-    public function getExternalIdentifier(): string;
+    public function getExternalIdentifierList(): array;
 }

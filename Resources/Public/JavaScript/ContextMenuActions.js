@@ -15,7 +15,13 @@ define(['TYPO3/CMS/Core/Ajax/AjaxRequest', 'TYPO3/CMS/Backend/Notification'], fu
     ContextMenuActions.ClearPageViaContextMenu = function (table, id) {
         let type = 0; // UNKNOWN
         if (table === 'pages')
-            type = 1; // PAGE
+            type = 1; // Page
+        else if (table === 'sys_file' || table === 'sys_file_storage') {
+            if (id.startsWith('1:/')) {
+                type = 2 // FileAdmin
+                id = id.substr(2);
+            }
+        }
 
         ContextMenuActions.ClearExternalCache(type, id);
     }
