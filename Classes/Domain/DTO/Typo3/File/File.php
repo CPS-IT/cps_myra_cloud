@@ -20,9 +20,17 @@ abstract class File implements FileInterface
     /**
      * @return string
      */
+    public function getRawSlug(): string
+    {
+        return $this->slug;
+    }
+
+    /**
+     * @return string
+     */
     public function getSlug(): string
     {
-        $relPath = $this->getPrefix() . '/' . $this->slug;
+        $relPath = $this->getPrefix() . '/' . $this->getRawSlug();
         $pathSegments = array_filter(explode('/', $relPath));
         return '/'.implode('/', $pathSegments);
     }

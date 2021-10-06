@@ -4,12 +4,19 @@ declare(strict_types=1);
 namespace CPSIT\CpsMyraCloud\Adapter;
 
 use BR\Toolkit\Typo3\Cache\CacheService;
+use CPSIT\CpsMyraCloud\Domain\DTO\Typo3\PageSlugInterface;
+use CPSIT\CpsMyraCloud\Domain\DTO\Typo3\SiteConfigInterface;
 use CPSIT\CpsMyraCloud\Traits\DomainListParserTrait;
+use Psr\Log\LoggerAwareInterface;
+use Psr\Log\LoggerAwareTrait;
 use TYPO3\CMS\Core\Authentication\BackendUserAuthentication;
 use TYPO3\CMS\Core\Configuration\ExtensionConfiguration;
 use TYPO3\CMS\Core\Core\Environment;
 use TYPO3\CMS\Core\Http\ServerRequestFactory;
 use TYPO3\CMS\Core\SingletonInterface;
+use TYPO3\CMS\Core\SysLog\Action\Cache as SystemLogCacheAction;
+use TYPO3\CMS\Core\SysLog\Error as SystemLogErrorClassification;
+use TYPO3\CMS\Core\SysLog\Type as SystemLogType;
 
 abstract class BaseAdapter implements SingletonInterface, AdapterInterface
 {
@@ -51,6 +58,37 @@ abstract class BaseAdapter implements SingletonInterface, AdapterInterface
     abstract protected function getAdapterConfigPrefix(): string;
 
     /**
+     * @return BackendUserAuthentication|null
+     */
+    protected function getBEUser(): ?BackendUserAuthentication
+    {
+        if (($GLOBALS['BE_USER']??null) instanceof BackendUserAuthentication) {
+            return $GLOBALS['BE_USER'];
+        }
+
+        return null;
+    }
+
+    /**
+     * @param string $message
+     * @param array $arguments
+     */
+    protected function writeLog(string $message, array $arguments): void
+    {
+        $beUser = $this->getBEUser();
+        if ($beUser) {
+            $beUser->writeLog(
+                SystemLogType::CACHE,
+                SystemLogCacheAction::CLEAR,
+                SystemLogErrorClassification::MESSAGE,
+                0,
+                $message,
+                $arguments
+            );
+        }
+    }
+
+    /**
      * @return bool
      */
     public function canExecute(): bool
@@ -58,7 +96,7 @@ abstract class BaseAdapter implements SingletonInterface, AdapterInterface
         return !(
             !$this->setupConfigCondition() ||
             !$this->liveOnlyCondition() ||
-            !$this->domainBlacklist()
+            !$this->domainNotBlacklisted()
         );
     }
 
@@ -71,6 +109,32 @@ abstract class BaseAdapter implements SingletonInterface, AdapterInterface
             !$this->adminOnlyCondition() ||
             !$this->canExecute()
         );
+    }
+
+    /**
+     * @return bool
+     */
+    public function canAutomated(): bool
+    {
+        return !(
+            !$this->isAutomatedAllowedCondition() ||
+            !$this->canExecute()
+        );
+    }
+
+    /**
+     * @return bool
+     */
+    private function isAutomatedAllowedCondition(): bool
+    {
+        if (isset(self::$checkupCache[__METHOD__])) {
+            return self::$checkupCache[__METHOD__];
+        }
+
+        $allConfigData = $this->getAdapterConfig(true);
+        $hooksDisabled = ($allConfigData['disableHooks'] ?? '0') === '1';
+
+        return self::$checkupCache[__METHOD__] = !$hooksDisabled;
     }
 
     /**
@@ -115,10 +179,14 @@ abstract class BaseAdapter implements SingletonInterface, AdapterInterface
     /**
      * @return bool
      */
-    private function domainBlacklist(): bool
+    private function domainNotBlacklisted(): bool
     {
         if (isset(self::$checkupCache[__METHOD__])) {
             return self::$checkupCache[__METHOD__];
+        }
+
+        if (Environment::isCli()) {
+            return self::$checkupCache[__METHOD__] = true;
         }
 
         $blacklistString = $this->getAdapterConfig(true)['domainBlacklist'] ?? '';

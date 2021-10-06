@@ -28,12 +28,11 @@ class SiteService implements SingletonInterface
 
     /**
      * @param PageIdInterface|null $pageId
-     * @param bool $clearAll
      * @return SiteConfigInterface[]
      */
-    public function getSitesForClearance(?PageIdInterface $pageId, bool $clearAll = false): array
+    public function getSitesForClearance(?PageIdInterface $pageId): array
     {
-        if ($pageId && !$clearAll)
+        if ($pageId)
             return $this->getAllSupportedSitesForPageId($pageId);
 
         return $this->getAllSupportedSites();

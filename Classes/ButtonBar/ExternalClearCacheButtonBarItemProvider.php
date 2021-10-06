@@ -91,7 +91,7 @@ class ExternalClearCacheButtonBarItemProvider
                 return '';
 
             return $this->cacheId = $id;
-        } elseif ($this->getCacheType() === Typo3CacheType::FILE_ADMIN) {
+        } elseif ($this->getCacheType() === Typo3CacheType::RESOURCE) {
             if (strpos($id, '1:/') === 0) {
                 return $this->cacheId = substr($id, 2);
             } else {
@@ -123,7 +123,7 @@ class ExternalClearCacheButtonBarItemProvider
                 return false;
 
             return $this->pageService->getPage($pageUid) !== null;
-        } elseif ($this->getCacheType() === Typo3CacheType::FILE_ADMIN) {
+        } elseif ($this->getCacheType() === Typo3CacheType::RESOURCE) {
             $path = $this->getIdentifier();
             return !empty($path);
         }
@@ -150,7 +150,7 @@ class ExternalClearCacheButtonBarItemProvider
 
         $route = $this->getBackendRoute();
         if ($route === '/module/file/FilelistList') {
-            return $this->cacheTypeCache = Typo3CacheType::FILE_ADMIN;
+            return $this->cacheTypeCache = Typo3CacheType::RESOURCE;
         } elseif (in_array($route, [
             '/module/web/layout',
             '/module/web/list',

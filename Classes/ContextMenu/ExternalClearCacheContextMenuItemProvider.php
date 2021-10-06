@@ -41,7 +41,7 @@ class ExternalClearCacheContextMenuItemProvider extends AbstractProvider
         if ($type === Typo3CacheType::PAGE) {
             $page = $this->pageService->getPage((int)$this->getIdentifier());
             return ($page !== null);
-        } elseif ($type === Typo3CacheType::FILE_ADMIN) {
+        } elseif ($type === Typo3CacheType::RESOURCE) {
             return !empty($this->getIdentifier());
         }
 
@@ -60,7 +60,7 @@ class ExternalClearCacheContextMenuItemProvider extends AbstractProvider
                 return '';
 
             return $id;
-        } elseif ($type === Typo3CacheType::FILE_ADMIN) {
+        } elseif ($type === Typo3CacheType::RESOURCE) {
             if (strpos($id, '1:/') === 0) {
                 return substr($id, 2);
             } else {
@@ -133,7 +133,7 @@ class ExternalClearCacheContextMenuItemProvider extends AbstractProvider
             'sys_file',
             'sys_file_storage'
         ])) {
-            return Typo3CacheType::FILE_ADMIN;
+            return Typo3CacheType::RESOURCE;
         }
 
         return Typo3CacheType::INVALID;

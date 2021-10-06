@@ -13,3 +13,17 @@ services:
 
   CPSIT\CpsMyraCloud\Controller\ExternalClearCacheController:
     public: true
+
+  CPSIT\CpsMyraCloud\FileList\FileListHook:
+    public: true
+
+  CPSIT\CpsMyraCloud\DataHandler\DataHandlerHook:
+    public: true
+
+  CPSIT\CpsMyraCloud\Command\MyraCloudClearCommand:
+    tags:
+      - name: 'console.command'
+        command: 'myracloud:clear'
+        description: 'TYPO3-MyraCloud Interface'
+        hidden: false
+        schedulable: false

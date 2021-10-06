@@ -17,10 +17,15 @@ use Myracloud\WebApi\Endpoint\CacheClear;
 use Myracloud\WebApi\Endpoint\DnsRecord;
 use Myracloud\WebApi\Middleware\Signature;
 use Psr\Http\Message\RequestInterface;
+use TYPO3\CMS\Core\Authentication\BackendUserAuthentication;
+use TYPO3\CMS\Core\SysLog\Action\Cache as SystemLogCacheAction;
+use TYPO3\CMS\Core\SysLog\Error as SystemLogErrorClassification;
+use TYPO3\CMS\Core\SysLog\Type as SystemLogType;
 
 class MyraApiAdapter extends BaseAdapter
 {
     protected array $clients;
+    private static array $multiClearCacheProtection = [];
 
     private const CONFIG_NAME_API_KEY = 'myra_api_key';
     private const CONFIG_NAME_ENDPOINT = 'myra_endpoint';
@@ -67,16 +72,25 @@ class MyraApiAdapter extends BaseAdapter
         $r = false;
         // if no slug provided / clear root
         $slug = ($pageSlug !== null) ? $pageSlug->getSlug() : '/';
-
         foreach ($site->getExternalIdentifierList() as $domainIdentifier) {
             foreach ($this->getFqdnForSite($domainIdentifier) as $subDomain) {
                 $r |= $this->clearCacheDomain($domainIdentifier, $subDomain, $slug, $recursive);
             }
         }
 
-
-
         return (bool)$r;
+    }
+
+    /**
+     * @param string $siteRef
+     * @param string $fqdn
+     * @param string $path
+     * @param bool $recursive
+     * @return string
+     */
+    protected function getSendHash(string $siteRef, string $fqdn, string $path, bool $recursive = false): string
+    {
+        return md5($siteRef .'_'. $fqdn .'_'. $path . '_' . $recursive);
     }
 
     /**
@@ -86,16 +100,34 @@ class MyraApiAdapter extends BaseAdapter
      * @param bool $recursive
      * @return bool
      */
-    private function clearCacheDomain(string $domain, string $fqdn, string $path = '/', bool $recursive = false): bool
+    protected function clearCacheDomain(string $domain, string $fqdn, string $path = '/', bool $recursive = false): bool
     {
+        $hash = $this->getSendHash($domain, $fqdn, $path, $recursive);
+        if ((self::$multiClearCacheProtection[$hash]??false) === true) {
+            return true;
+        }
+
         try {
             $r = $this->getCacheClearApi()->clear($domain, $fqdn, $path, $recursive);
+            self::$multiClearCacheProtection[$hash] = $success = (!empty($r) && ($r['error']??true) === false);
         } catch (GuzzleException $e) {
             return false;
         }
 
-        return (!empty($r) && ($r['error']??true) === false);
+        $this->writeLog('User %s has cleared the MYRA_CLOUD cache for domain %s => %s%s (recursive: %s) (success: %s)',
+            [
+                $this->getBEUser()->user['username'] . ' (uid: ' . $this->getBEUser()->user['uid'] . ')',
+                $domain,
+                $fqdn,
+                $path,
+                ($recursive?'true':'false'),
+                ($success?'true':'false')
+            ]
+        );
+
+        return $success;
     }
+
 
     /**
      * @param string $domainIdentifier

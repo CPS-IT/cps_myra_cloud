@@ -10,8 +10,9 @@ use CPSIT\CpsMyraCloud\Domain\DTO\Typo3\Page;
 use CPSIT\CpsMyraCloud\Domain\DTO\Typo3\PageInterface;
 use TYPO3\CMS\Core\Database\ConnectionPool;
 use TYPO3\CMS\Core\Database\Query\QueryBuilder;
+use TYPO3\CMS\Core\SingletonInterface;
 
-class PageRepository
+class PageRepository implements SingletonInterface
 {
     /**
      * @return QueryBuilder

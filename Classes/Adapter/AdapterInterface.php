@@ -12,5 +12,7 @@ interface AdapterInterface extends AdapterRegisterInterface
 
     public function canInteract(): bool;
 
+    public function canAutomated(): bool;
+
     public function clearCache(SiteConfigInterface $site, ?PageSlugInterface $pageSlug = null, bool $recursive = false): bool;
 }

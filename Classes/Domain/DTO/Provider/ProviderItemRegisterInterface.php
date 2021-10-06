@@ -18,4 +18,6 @@ interface ProviderItemRegisterInterface extends AdapterRegisterInterface
     public function canExecute(): bool;
 
     public function canInteract(): bool;
+
+    public function canAutomated(): bool;
 }

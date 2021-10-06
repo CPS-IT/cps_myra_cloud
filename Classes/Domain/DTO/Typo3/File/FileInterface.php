@@ -7,5 +7,5 @@ use CPSIT\CpsMyraCloud\Domain\DTO\Typo3\PageSlugInterface;
 
 interface FileInterface extends PageSlugInterface
 {
-
+    public function getRawSlug(): string;
 }

@@ -44,7 +44,7 @@ class ExternalCacheService
 
         if ($type === Typo3CacheType::PAGE) {
             return $this->clearPage($providerItem, (int)$identifier);
-        } elseif ($type === Typo3CacheType::FILE_ADMIN) {
+        } elseif ($type === Typo3CacheType::RESOURCE) {
             return $this->clearFile($providerItem, $identifier);
         } elseif ($type === Typo3CacheType::ALL_PAGE) {
             return $this->clearAllPages($providerItem);
@@ -73,7 +73,7 @@ class ExternalCacheService
      */
     private function clearAllPages(ProviderItemRegisterInterface $provider): bool
     {
-        $sites = $this->siteService->getSitesForClearance(null, true);
+        $sites = $this->siteService->getSitesForClearance(null);
         return $this->clearCacheWithAdapter($provider->getAdapter(), $sites, null, true);
     }
 
@@ -83,7 +83,7 @@ class ExternalCacheService
      */
     private function clearAllFiles(ProviderItemRegisterInterface $provider): bool
     {
-        $sites = $this->siteService->getSitesForClearance(null, true);
+        $sites = $this->siteService->getSitesForClearance(null);
         $fileCaches = [new FileAdmin(), new Typo3Temp(), new Typo3Conf(), new Typo3Core()];
         $result = 0;
         foreach ($fileCaches as $file) {
@@ -101,7 +101,7 @@ class ExternalCacheService
     private function clearFile(ProviderItemRegisterInterface $provider, string $relPath): bool
     {
         $file = new FileAdmin($relPath);
-        $sites = $this->siteService->getSitesForClearance(null, true);
+        $sites = $this->siteService->getSitesForClearance(null);
         // files are always recursive deleted
         return $this->clearCacheWithAdapter($provider->getAdapter(), $sites, $file, true);
     }

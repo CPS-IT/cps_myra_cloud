@@ -13,5 +13,8 @@ onlyLive = 1
 # cat=Typo3; type=boolean; label=Enable extension Interface (active clear cache buttons) only for Admin User (did not affect auto-clear-hooks for page and filelist): default ON
 onlyAdmin = 1
 
+# cat=Typo3; type=boolean; label=Disable auto-clear-hooks for page/content and filelist: default OFF
+disableHooks = 0
+
 # cat=Typo3; type=string; label=Disable extension in domain context (comma separated list), for example a special stage/preview/development domain
 domainBlacklist =
