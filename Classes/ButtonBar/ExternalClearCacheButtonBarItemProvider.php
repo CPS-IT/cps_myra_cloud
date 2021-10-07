@@ -5,6 +5,7 @@ namespace CPSIT\CpsMyraCloud\ButtonBar;
 
 
 use CPSIT\CpsMyraCloud\AdapterProvider\ExternalCacheProvider;
+use CPSIT\CpsMyraCloud\Domain\DTO\Typo3\File\FileAdmin;
 use CPSIT\CpsMyraCloud\Domain\Enum\Typo3CacheType;
 use CPSIT\CpsMyraCloud\Service\PageService;
 use Psr\Http\Message\ServerRequestInterface;
@@ -92,14 +93,12 @@ class ExternalClearCacheButtonBarItemProvider
 
             return $this->cacheId = $id;
         } elseif ($this->getCacheType() === Typo3CacheType::RESOURCE) {
-            if (strpos($id, '1:/') === 0) {
-                return $this->cacheId = substr($id, 2);
-            } else {
-                return $this->cacheId = '/';
-            }
+            if ($id === '')
+                $id = '1:/';
+            return $this->cacheId = $id;
         }
 
-        return '';
+        return $this->cacheId = '';
     }
 
     /**
@@ -168,6 +167,17 @@ class ExternalClearCacheButtonBarItemProvider
     private function getBackendRoute(): string
     {
         return $this->getRequest()->getQueryParams()['route']??'';
+    }
+
+    /**
+     * @return string
+     */
+    private function getBackendEditTableName(): string
+    {
+        if (array_key_exists('sys_file_metadata', $this->getRequest()->getQueryParams()['edit'])) {
+            return 'sys_file_metadata';
+        }
+        return '';
     }
 
     /**

@@ -5,6 +5,7 @@ namespace CPSIT\CpsMyraCloud\ContextMenu;
 
 use BR\Toolkit\Typo3\VersionWrapper\InstanceUtility;
 use CPSIT\CpsMyraCloud\AdapterProvider\ExternalCacheProvider;
+use CPSIT\CpsMyraCloud\Domain\DTO\Typo3\File\FileAdmin;
 use CPSIT\CpsMyraCloud\Domain\Enum\Typo3CacheType;
 use CPSIT\CpsMyraCloud\Service\PageService;
 use TYPO3\CMS\Backend\ContextMenu\ItemProviders\AbstractProvider;
@@ -61,11 +62,7 @@ class ExternalClearCacheContextMenuItemProvider extends AbstractProvider
 
             return $id;
         } elseif ($type === Typo3CacheType::RESOURCE) {
-            if (strpos($id, '1:/') === 0) {
-                return substr($id, 2);
-            } else {
-                return '/';
-            }
+            return $id;
         }
 
         return '';

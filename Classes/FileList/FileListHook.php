@@ -104,7 +104,8 @@ class FileListHook implements ExtendedFileUtilityProcessDataHookInterface, Singl
      */
     private function clearMyraFile(MyraFileInterface $file): void
     {
-        $path = $file->getRawSlug();
+        // TODO: add other storages here not only (1:)
+        $path = '1:/' . ltrim($file->getRawSlug(), '/');
         $crc = crc32($path);
         if (!($this->pageAlreadyCleared[$crc]??false)) {
             try {
