@@ -2,11 +2,10 @@
 
 ### Requirements
 
-* php: ^7.4
+* php: ^8.1 | ^8.2
 * ext-json: *
-* myra-security-gmbh/web-api: *
-* typo3/cms-core: ^10.4
-* brannow/br-toolkit: ^1.0
+* cpsit/myra-web-api: *
+* typo3/cms-core: ^12.4
 
 ## Usage
 
@@ -17,7 +16,7 @@ Clear MyraCloud Remote-Caches out of TYPO3 Backend.
 The MyraCloud Clear listen on different event trigger, for example the MyraCloud-ClearCache-Button im Cache Menu or
 the clear Page cache Hook.
 
-for a successful ClearCache, we need at least 3 things, 
+for a successful ClearCache, we need at least 3 things,
 * MyraCloud-Config Domain
 * fqdn
 * resource/uri

@@ -3,9 +3,7 @@ declare(strict_types=1);
 
 namespace CPSIT\CpsMyraCloud\ButtonBar;
 
-
-use CPSIT\CpsMyraCloud\AdapterProvider\ExternalCacheProvider;
-use CPSIT\CpsMyraCloud\Domain\DTO\Typo3\File\FileAdmin;
+use CPSIT\CpsMyraCloud\AdapterProvider\AdapterProvider;
 use CPSIT\CpsMyraCloud\Domain\Enum\Typo3CacheType;
 use CPSIT\CpsMyraCloud\Service\PageService;
 use Psr\Http\Message\ServerRequestInterface;
@@ -18,21 +16,15 @@ use TYPO3\CMS\Core\Localization\LanguageService;
 
 class ExternalClearCacheButtonBarItemProvider
 {
-    private PageService $pageService;
-    private IconFactory $iconFactory;
-
-    private int $cacheTypeCache = Typo3CacheType::UNKNOWN;
+    private Typo3CacheType $cacheTypeCache = Typo3CacheType::UNKNOWN;
     private string $cacheId = '';
 
-    /**
-     * @param PageService $pageService
-     * @param IconFactory $iconFactory
-     */
-    public function __construct(PageService $pageService, IconFactory $iconFactory)
-    {
-        $this->pageService = $pageService;
-        $this->iconFactory = $iconFactory;
-    }
+    public function __construct(
+        private readonly PageService $pageService,
+        private readonly IconFactory $iconFactory,
+        private readonly AdapterProvider $provider
+    )
+    {}
 
     /**
      * Get buttons
@@ -48,7 +40,7 @@ class ExternalClearCacheButtonBarItemProvider
             return $buttons;
         }
 
-        $provider = ExternalCacheProvider::getDefaultProviderItem();
+        $provider = $this->provider->getDefaultProviderItem();
         if ($provider && $provider->canInteract()) {
             $lang = $this->getLanguageService();
             $clearCacheButton = $buttonBar->makeLinkButton();
@@ -138,10 +130,7 @@ class ExternalClearCacheButtonBarItemProvider
         return $this->getCacheType() > Typo3CacheType::UNKNOWN;
     }
 
-    /**
-     * @return int
-     */
-    private function getCacheType(): int
+    private function getCacheType(): Typo3CacheType
     {
         if ($this->cacheTypeCache !== Typo3CacheType::UNKNOWN) {
             return $this->cacheTypeCache;

@@ -5,7 +5,7 @@ namespace CPSIT\CpsMyraCloud\Service;
 
 
 use CPSIT\CpsMyraCloud\Adapter\AdapterInterface;
-use CPSIT\CpsMyraCloud\AdapterProvider\ExternalCacheProvider;
+use CPSIT\CpsMyraCloud\AdapterProvider\AdapterProvider;
 use CPSIT\CpsMyraCloud\Domain\DTO\Provider\ProviderItemRegisterInterface;
 use CPSIT\CpsMyraCloud\Domain\DTO\Typo3\File\CustomFile;
 use CPSIT\CpsMyraCloud\Domain\DTO\Typo3\File\FileAdmin;
@@ -17,29 +17,22 @@ use CPSIT\CpsMyraCloud\Domain\DTO\Typo3\PageSlugInterface;
 use CPSIT\CpsMyraCloud\Domain\DTO\Typo3\SiteConfigInterface;
 use CPSIT\CpsMyraCloud\Domain\Enum\Typo3CacheType;
 
-class ExternalCacheService
+readonly class ExternalCacheService
 {
-    private PageService $pageService;
-    private SiteService $siteService;
+    public function __construct(
+        private PageService $pageService,
+        private SiteService $siteService,
+        private AdapterProvider $provider
+    ) {}
 
     /**
-     * @param PageService $pageService
-     * @param SiteService $siteService
-     */
-    public function __construct(PageService $pageService, SiteService $siteService)
-    {
-        $this->pageService = $pageService;
-        $this->siteService = $siteService;
-    }
-
-    /**
-     * @param int $type
+     * @param Typo3CacheType $type
      * @param string $identifier
      * @return bool
      */
-    public function clear(int $type, string $identifier): bool
+    public function clear(Typo3CacheType $type, string $identifier): bool
     {
-        $providerItem = ExternalCacheProvider::getDefaultProviderItem();
+        $providerItem = $this->provider->getDefaultProviderItem();
         if ($providerItem === null) {
             return false;
         }
@@ -114,7 +107,7 @@ class ExternalCacheService
      */
     private function getFile(string $identifier): FileInterface
     {
-        if (strpos($identifier, '1:/') === 0) {
+        if (str_starts_with($identifier, '1:/')) {
             return new FileAdmin(substr($identifier, 3));
         }
         // TODO: add other storages here

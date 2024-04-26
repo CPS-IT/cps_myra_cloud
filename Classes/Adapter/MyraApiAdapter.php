@@ -4,8 +4,8 @@ declare(strict_types=1);
 namespace CPSIT\CpsMyraCloud\Adapter;
 
 use CPSIT\CpsMyraCloud\Domain\DTO\Typo3\PageSlugInterface;
-use CPSIT\CpsMyraCloud\Domain\DTO\Typo3\SiteConfigExternalIdentifierInterface;
 use CPSIT\CpsMyraCloud\Domain\DTO\Typo3\SiteConfigInterface;
+use Exception;
 use GuzzleHttp\Client;
 use GuzzleHttp\ClientInterface;
 use GuzzleHttp\Exception\GuzzleException;
@@ -17,10 +17,6 @@ use Myracloud\WebApi\Endpoint\CacheClear;
 use Myracloud\WebApi\Endpoint\DnsRecord;
 use Myracloud\WebApi\Middleware\Signature;
 use Psr\Http\Message\RequestInterface;
-use TYPO3\CMS\Core\Authentication\BackendUserAuthentication;
-use TYPO3\CMS\Core\SysLog\Action\Cache as SystemLogCacheAction;
-use TYPO3\CMS\Core\SysLog\Error as SystemLogErrorClassification;
-use TYPO3\CMS\Core\SysLog\Type as SystemLogType;
 
 class MyraApiAdapter extends BaseAdapter
 {
@@ -61,7 +57,6 @@ class MyraApiAdapter extends BaseAdapter
      * @param PageSlugInterface|null $pageSlug
      * @param bool $recursive
      * @return bool
-     * @throws \BR\Toolkit\Exceptions\CacheException
      */
     public function clearCache(SiteConfigInterface $site, ?PageSlugInterface $pageSlug = null, bool $recursive = false): bool
     {
@@ -132,31 +127,24 @@ class MyraApiAdapter extends BaseAdapter
     /**
      * @param string $domainIdentifier
      * @return string[]
-     * @throws \BR\Toolkit\Exceptions\CacheException
      */
     private function getFqdnForSite(string $domainIdentifier): array
     {
-        return $this->cacheService->cache(
-            'myra_getFqdnForSite_' . $domainIdentifier,
-            function () use ($domainIdentifier) {
-                $r = $this->getDomainRecordsForDomain($domainIdentifier);
-                $fqdn = [];
-                if (!empty($r) && $r['error'] === false) {
-                    foreach ($r['list'] as $recordItem) {
-                        $name = $recordItem['name']??'';
-                        $active = (bool)($recordItem['active']??false);
-                        $enable = (bool)($recordItem['enabled']??false);
-                        if ($active && $enable && $name !== '') {
-                            $fqdn[crc32($name)] = $name;
-                        }
-                    }
+        // todo: caching?
+        $r = $this->getDomainRecordsForDomain($domainIdentifier);
+        $fqdn = [];
+        if (!empty($r) && $r['error'] === false) {
+            foreach ($r['list'] as $recordItem) {
+                $name = $recordItem['name']??'';
+                $active = (bool)($recordItem['active']??false);
+                $enable = (bool)($recordItem['enabled']??false);
+                if ($active && $enable && $name !== '') {
+                    $fqdn[crc32($name)] = $name;
                 }
+            }
+        }
 
-                return array_values($fqdn);
-            },
-            'MYRA_CLOUD',
-            680000
-        );
+        return array_values($fqdn);
     }
 
     /**
@@ -170,7 +158,7 @@ class MyraApiAdapter extends BaseAdapter
         $r = [];
         try {
             $r = $st->getList($domain);
-        } catch (\Exception $e) {
+        } catch (Exception|GuzzleException) {
         }
 
         return $r;
@@ -181,14 +169,13 @@ class MyraApiAdapter extends BaseAdapter
      */
     private function getCacheClearApi(): ?CacheClear
     {
-        /** @var ?CacheClear $instance */
-        $instance = $this->getEndPointApi(CacheClear::class);
-        return $instance;
+        return $this->getEndPointApi(CacheClear::class);
     }
 
     /**
-     * @param string $className
-     * @return AbstractEndpoint|null
+     * @template T of object
+     * @param class-string<T> $className
+     * @return T the created instance
      */
     private function getEndPointApi(string $className): ?AbstractEndpoint
     {
@@ -199,7 +186,7 @@ class MyraApiAdapter extends BaseAdapter
         $client = $this->getMyraClient();
         try {
             return $client !== null ? new $className($client) : null;
-        } catch (\Exception $e) {
+        } catch (Exception) {
             return null;
         }
     }

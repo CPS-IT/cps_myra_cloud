@@ -3,8 +3,8 @@ declare(strict_types=1);
 
 namespace CPSIT\CpsMyraCloud\Domain\Repository;
 
-use BR\Toolkit\Typo3\VersionWrapper\InstanceUtility;
-use Doctrine\DBAL\Connection;
+use Doctrine\DBAL\ArrayParameterType;
+use Doctrine\DBAL\Exception;
 use Doctrine\DBAL\ParameterType;
 use CPSIT\CpsMyraCloud\Domain\DTO\Typo3\Page;
 use CPSIT\CpsMyraCloud\Domain\DTO\Typo3\PageInterface;
@@ -12,24 +12,22 @@ use TYPO3\CMS\Core\Database\ConnectionPool;
 use TYPO3\CMS\Core\Database\Query\QueryBuilder;
 use TYPO3\CMS\Core\SingletonInterface;
 
-class PageRepository implements SingletonInterface
+readonly class PageRepository implements SingletonInterface
 {
-    /**
-     * @return QueryBuilder
-     * @throws \TYPO3\CMS\Extbase\Object\Exception
-     */
+    public function __construct(
+        private ConnectionPool $connectionPool
+    )
+    {}
+
     private function getQueryBuilder(): QueryBuilder
     {
-        /** @var QueryBuilder $query */
-        $query = InstanceUtility::get(ConnectionPool::class)->getQueryBuilderForTable('pages');
-        return $query;
+        return $this->connectionPool->getQueryBuilderForTable('pages');
     }
 
     /**
      * @param int $pageUid
      * @return PageInterface|null
-     * @throws \Doctrine\DBAL\Driver\Exception
-     * @throws \TYPO3\CMS\Extbase\Object\Exception
+     * @throws Exception
      */
     public function getPageWithUid(int $pageUid): ?PageInterface
     {
@@ -40,15 +38,20 @@ class PageRepository implements SingletonInterface
         $qb->where(
             $qb->expr()->eq('p.uid', $qb->createNamedParameter($pageUid, ParameterType::INTEGER)),
             $qb->expr()->eq('p.deleted', $qb->createNamedParameter(0, ParameterType::INTEGER)),
-            $qb->expr()->in('p.doktype', $qb->createNamedParameter([1, 4, 5], Connection::PARAM_INT_ARRAY))
+            $qb->expr()->in('p.doktype', $qb->createNamedParameter([1, 4, 5], ArrayParameterType::INTEGER))
         );
 
         $qb->orderBy('uid', 'ASC');
-        $result = $qb->execute()->fetchAssociative();
+        $result = $qb->executeQuery()->fetchAssociative();
 
         if ($result !== false) {
-            $result['hidden'] = (bool)$result['hidden'];
-            return new Page(...array_values($result));
+            return new Page(
+                uid: (int)$result['uid'],
+                title: $result['title'],
+                hidden: (bool)$result['hidden'],
+                dokType: (int)$result['doktype'],
+                slug: $result['slug']
+            );
         }
 
         return null;

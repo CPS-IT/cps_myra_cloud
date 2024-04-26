@@ -3,25 +3,20 @@ declare(strict_types=1);
 
 namespace CPSIT\CpsMyraCloud\Service;
 
-use BR\Toolkit\Typo3\Cache\CacheService;
 use CPSIT\CpsMyraCloud\Domain\DTO\Typo3\PageInterface;
 use CPSIT\CpsMyraCloud\Domain\Repository\PageRepository;
+use Doctrine\DBAL\Exception;
 use TYPO3\CMS\Core\SingletonInterface;
 
-class PageService implements SingletonInterface
+readonly class PageService implements SingletonInterface
 {
-    private PageRepository $pageRepository;
-    private CacheService $cacheService;
-
     /**
      * @param PageRepository $pageRepository
-     * @param CacheService $cacheService
      */
-    public function __construct(PageRepository $pageRepository, CacheService $cacheService)
-    {
-        $this->pageRepository = $pageRepository;
-        $this->cacheService = $cacheService;
-    }
+    public function __construct(
+        private PageRepository $pageRepository
+    )
+    {}
 
     /**
      * @param int $pageUid
@@ -30,14 +25,11 @@ class PageService implements SingletonInterface
     public function getPage(int $pageUid): ?PageInterface
     {
         if ($pageUid > 0) {
+            $pageData = null;
             try {
-                return $this->cacheService->cache(
-                    'PageService_page_uid_' . $pageUid,
-                    fn(): ?PageInterface => $this->pageRepository->getPageWithUid($pageUid),
-                    'MYRA_CLOUD',
-                    0
-                );
-            } catch (\Exception | \Doctrine\DBAL\Driver\Exception $e) {
+                $pageData = $this->pageRepository->getPageWithUid($pageUid);
+            } catch (Exception) {} finally {
+                return $pageData;
             }
         }
 

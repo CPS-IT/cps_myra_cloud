@@ -10,20 +10,28 @@ class Typo3SiteConfig implements SiteConfigInterface
 {
     use DomainListParserTrait;
 
-    private array $myraDomainList;
+    private ?array $myraDomainList = [];
 
     /**
      * @param SiteInterface $site
      */
-    public function __construct(SiteInterface $site)
+    public function __construct(
+        private readonly SiteInterface $site
+    )
+    {}
+
+    private function getDomainList(): array
     {
+        if ($this->myraDomainList !== null)
+            return $this->myraDomainList;
+
         $domainList = [];
-        if (method_exists($site, 'getConfiguration')) {
-            $domainListString = $site->getConfiguration()['myra_host']??'';
+        if (method_exists($this->site, 'getConfiguration')) {
+            $domainListString = $this->site->getConfiguration()['myra_host']??'';
             $domainList = $this->parseCommaList($domainListString);
         }
 
-        $this->myraDomainList = $domainList;
+        return $this->myraDomainList = $domainList;
     }
 
     /**
@@ -31,6 +39,6 @@ class Typo3SiteConfig implements SiteConfigInterface
      */
     public function getExternalIdentifierList(): array
     {
-        return $this->myraDomainList;
+        return $this->getDomainList();
     }
 }

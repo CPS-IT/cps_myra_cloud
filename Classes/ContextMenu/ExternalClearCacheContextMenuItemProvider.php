@@ -3,27 +3,19 @@ declare(strict_types=1);
 
 namespace CPSIT\CpsMyraCloud\ContextMenu;
 
-use BR\Toolkit\Typo3\VersionWrapper\InstanceUtility;
-use CPSIT\CpsMyraCloud\AdapterProvider\ExternalCacheProvider;
-use CPSIT\CpsMyraCloud\Domain\DTO\Typo3\File\FileAdmin;
+use CPSIT\CpsMyraCloud\AdapterProvider\AdapterProvider;
 use CPSIT\CpsMyraCloud\Domain\Enum\Typo3CacheType;
 use CPSIT\CpsMyraCloud\Service\PageService;
 use TYPO3\CMS\Backend\ContextMenu\ItemProviders\AbstractProvider;
 
 class ExternalClearCacheContextMenuItemProvider extends AbstractProvider
 {
-    private PageService $pageService;
-
-    /**
-     * @param string $table
-     * @param string $identifier
-     * @param string $context
-     * @throws \TYPO3\CMS\Extbase\Object\Exception
-     */
-    public function __construct(string $table, string $identifier, string $context)
+    public function __construct(
+        private readonly AdapterProvider $adapterProvider,
+        private readonly PageService $pageService
+    )
     {
-        $this->pageService = InstanceUtility::get(PageService::class);
-        parent::__construct($table, $identifier, $context);
+        parent::__construct();
     }
 
     /**
@@ -31,22 +23,25 @@ class ExternalClearCacheContextMenuItemProvider extends AbstractProvider
      */
     public function canHandle(): bool
     {
-        $type = $this->getCacheType();
-        if ($type <= Typo3CacheType::UNKNOWN)
-            return false;
+        $canHandle = false;
+        try {
+            $type = $this->getCacheType();
+            if ($type <= Typo3CacheType::UNKNOWN)
+                return false;
 
-        $provider = ExternalCacheProvider::getDefaultProviderItem();
-        if ($provider === null || !$provider->canInteract())
-            return false;
+            $provider = $this->adapterProvider->getDefaultProviderItem();
+            if ($provider === null || !$provider->canInteract())
+                return false;
 
-        if ($type === Typo3CacheType::PAGE) {
-            $page = $this->pageService->getPage((int)$this->getIdentifier());
-            return ($page !== null);
-        } elseif ($type === Typo3CacheType::RESOURCE) {
-            return !empty($this->getIdentifier());
+            if ($type === Typo3CacheType::PAGE) {
+                $page = $this->pageService->getPage((int)$this->getIdentifier());
+                return $canHandle = ($page !== null);
+            } elseif ($type === Typo3CacheType::RESOURCE) {
+                return $canHandle = !empty($this->getIdentifier());
+            }
+        } finally {
+            return $canHandle;
         }
-
-        return false;
     }
 
     /**
@@ -82,7 +77,7 @@ class ExternalClearCacheContextMenuItemProvider extends AbstractProvider
      */
     protected function getAdditionalAttributes(string $itemName): array
     {
-        $provider = ExternalCacheProvider::getDefaultProviderItem();
+        $provider = $this->adapterProvider->getDefaultProviderItem();
         if ($provider) {
             return [
                 'data-callback-module' => $provider->getRequireJsNamespace()
@@ -108,7 +103,7 @@ class ExternalClearCacheContextMenuItemProvider extends AbstractProvider
      */
     private function setupItem(): array
     {
-        $provider = ExternalCacheProvider::getDefaultProviderItem();
+        $provider = $this->adapterProvider->getDefaultProviderItem();
         return $this->itemsConfiguration = [
             $provider->getCacheId() => [
                 'type' => 'item',
@@ -119,10 +114,7 @@ class ExternalClearCacheContextMenuItemProvider extends AbstractProvider
         ];
     }
 
-    /**
-     * @return int
-     */
-    private function getCacheType(): int
+    private function getCacheType(): Typo3CacheType
     {
         if ($this->table === 'pages') {
             return Typo3CacheType::PAGE;
@@ -147,7 +139,7 @@ class ExternalClearCacheContextMenuItemProvider extends AbstractProvider
             return false;
         }
 
-        $provider = ExternalCacheProvider::getDefaultProviderItem();
+        $provider = $this->adapterProvider->getDefaultProviderItem();
         return ($itemName === $provider->getCacheId());
     }
 }

@@ -3,12 +3,7 @@ declare(strict_types=1);
 
 namespace CPSIT\CpsMyraCloud\Adapter;
 
-use BR\Toolkit\Typo3\Cache\CacheService;
-use CPSIT\CpsMyraCloud\Domain\DTO\Typo3\PageSlugInterface;
-use CPSIT\CpsMyraCloud\Domain\DTO\Typo3\SiteConfigInterface;
 use CPSIT\CpsMyraCloud\Traits\DomainListParserTrait;
-use Psr\Log\LoggerAwareInterface;
-use Psr\Log\LoggerAwareTrait;
 use TYPO3\CMS\Core\Authentication\BackendUserAuthentication;
 use TYPO3\CMS\Core\Configuration\ExtensionConfiguration;
 use TYPO3\CMS\Core\Core\Environment;
@@ -23,18 +18,15 @@ abstract class BaseAdapter implements SingletonInterface, AdapterInterface
     use DomainListParserTrait;
 
     private ExtensionConfiguration $extensionConfiguration;
-    protected CacheService $cacheService;
     private static array $configCache = [];
     private static array $checkupCache = [];
 
     /**
      * @param ExtensionConfiguration $extensionConfiguration
-     * @param CacheService $cacheService
      */
-    public function __construct(ExtensionConfiguration $extensionConfiguration, CacheService $cacheService)
+    public function __construct(ExtensionConfiguration $extensionConfiguration)
     {
         $this->extensionConfiguration = $extensionConfiguration;
-        $this->cacheService = $cacheService;
     }
 
     public function getRequireJsNamespace(): string

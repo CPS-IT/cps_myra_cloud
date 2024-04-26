@@ -9,20 +9,12 @@ use Psr\Http\Message\ResponseFactoryInterface;
 use Psr\Http\Message\ResponseInterface;
 use Psr\Http\Message\ServerRequestInterface;
 
-class ExternalClearCacheController
+readonly class ExternalClearCacheController
 {
-    private ResponseFactoryInterface $responseFactory;
-    private ExternalCacheService $externalCacheService;
-
-    /**
-     * @param ResponseFactoryInterface $responseFactory
-     * @param ExternalCacheService $externalCacheService
-     */
-    public function __construct(ResponseFactoryInterface $responseFactory, ExternalCacheService $externalCacheService)
-    {
-        $this->responseFactory = $responseFactory;
-        $this->externalCacheService = $externalCacheService;
-    }
+    public function __construct(
+        private ResponseFactoryInterface $responseFactory,
+        private ExternalCacheService $externalCacheService
+    ) {}
 
     /**
      * @param ServerRequestInterface $request
@@ -31,7 +23,7 @@ class ExternalClearCacheController
     public function clearPageCache(ServerRequestInterface $request): ResponseInterface
     {
         $identifier = $request->getQueryParams()['id']??'0';
-        $type = (int)($request->getQueryParams()['type']??Typo3CacheType::UNKNOWN);
+        $type = Typo3CacheType::tryFrom((int)$request->getQueryParams()['type']??Typo3CacheType::UNKNOWN->value);
 
         $result = $this->externalCacheService->clear($type, $identifier);
 
