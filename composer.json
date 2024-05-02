@@ -12,7 +12,7 @@
     "ext-json": "*",
     "typo3/cms-core": "^12.4",
     "typo3/minimal": "^12.4",
-    "cpsit/myra-web-api": "dev-main"
+    "cpsit/myra-web-api": "^1"
   },
   "scripts": {
     "post-autoload-dump": [

@@ -58,7 +58,7 @@ class MyraCloudClearCommand extends Command
      * @param OutputInterface $output
      * @return int
      */
-    protected function execute(InputInterface $input, OutputInterface $output)
+    protected function execute(InputInterface $input, OutputInterface $output): int
     {
         $type = trim((string)$input->getOption('type'));
         $identifier = trim((string)$input->getOption('identifier'));
