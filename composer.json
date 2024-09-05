@@ -2,6 +2,11 @@
   "name": "cpsit/cps-myra-cloud",
   "description": "clear cache for MyraCloud",
   "type": "typo3-cms-extension",
+  "keywords": [
+    "TYPO3"
+  ],
+  "homepage": "https://www.cps-it.de/",
+  "license": "GPL-3.0+",
 
 	"repositories": [
 		{"type": "vcs", "url": "git@github.com:CPS-IT/myra-web-api.git"}
