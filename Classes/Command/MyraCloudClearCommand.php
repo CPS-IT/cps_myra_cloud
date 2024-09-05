@@ -38,14 +38,15 @@ class MyraCloudClearCommand extends Command
         $this->addUsage('myracloud:clear -t page -i [PAGE_UID like: 123]');
         $this->addUsage('myracloud:clear -t all');
         $this->addUsage('myracloud:clear -t resource -i [PATH like: /fileadmin/path/To/Directory]');
+        $this->addUsage('myracloud:clear -t resource -i [PATH like: /assets/myCustomAssets/myScript.js]');
         $this->addUsage('myracloud:clear -t resource -i [PATH like: /fileadmin/path/ToFile.jpg]');
         $this->addUsage('myracloud:clear -t allresources');
 
         $this->setHelp('resource and allresources are always cleared recursive' . LF .
             'identifier for recursive can be a folder or a file' . LF.LF .
             '-t page '."\t\t".' require a page id' . LF .
-            '-t resource '."\t\t".' require a path in /fileadmin. example: -t resource -i /fileadmin/user_upload/pdfs' . LF .
-            '-t all '."\t\t".' clear everything in myracloud from this TYPO3 Instance (does not need a identifier)' . LF .
+            '-t resource '."\t\t".' require a uri. example: -t resource -i /fileadmin/user_upload/pdfs' . LF .
+            '-t all '."\t\t".' clear everything in myracloud for this TYPO3 Instance (does not need a identifier)' . LF .
             '-t allresources '."\t".' clear everything, recursive, under these folders (does not need a identifier): '. LF .
             "\t\t\t" . ' /fileadmin/*, /typo3/*, /typo3temp/*, /typo3conf/*' . LF);
         $this->addOption('type', 't', InputArgument::OPTIONAL, 'types: '. implode(', ', array_keys($this->typeMap)), '');
@@ -57,7 +58,7 @@ class MyraCloudClearCommand extends Command
      * @param OutputInterface $output
      * @return int
      */
-    protected function execute(InputInterface $input, OutputInterface $output)
+    protected function execute(InputInterface $input, OutputInterface $output): int
     {
         $type = trim((string)$input->getOption('type'));
         $identifier = trim((string)$input->getOption('identifier'));

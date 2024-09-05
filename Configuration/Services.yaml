@@ -20,6 +20,14 @@ services:
   CPSIT\CpsMyraCloud\DataHandler\DataHandlerHook:
     public: true
 
+  CPSIT\CpsMyraCloud\AdapterProvider\AdapterProvider:
+    arguments:
+      $adapters: !tagged_iterator 'cpsit.external.cache.adapter'
+
+  CPSIT\CpsMyraCloud\Adapter\MyraApiAdapter:
+    tags:
+      - { name: 'cpsit.external.cache.adapter' }
+
   CPSIT\CpsMyraCloud\Command\MyraCloudClearCommand:
     tags:
       - name: 'console.command'

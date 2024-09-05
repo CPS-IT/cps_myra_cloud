@@ -3,7 +3,6 @@ declare(strict_types=1);
 
 namespace CPSIT\CpsMyraCloud\Service;
 
-use BR\Toolkit\Typo3\Cache\CacheService;
 use CPSIT\CpsMyraCloud\Domain\DTO\Typo3\PageIdInterface;
 use CPSIT\CpsMyraCloud\Domain\DTO\Typo3\SiteConfigExternalIdentifierInterface;
 use CPSIT\CpsMyraCloud\Domain\DTO\Typo3\SiteConfigInterface;
@@ -11,20 +10,15 @@ use CPSIT\CpsMyraCloud\Domain\DTO\Typo3\Typo3SiteConfig;
 use TYPO3\CMS\Core\SingletonInterface;
 use TYPO3\CMS\Core\Site\SiteFinder;
 
-class SiteService implements SingletonInterface
+readonly class SiteService implements SingletonInterface
 {
-    private SiteFinder $siteFinder;
-    private CacheService $cacheService;
-
     /**
      * @param SiteFinder $siteFinder
-     * @param CacheService $cacheService
      */
-    public function __construct(SiteFinder $siteFinder, CacheService $cacheService)
-    {
-        $this->siteFinder = $siteFinder;
-        $this->cacheService = $cacheService;
-    }
+    public function __construct(
+        private SiteFinder $siteFinder
+    )
+    {}
 
     /**
      * @param PageIdInterface|null $pageId
@@ -43,22 +37,16 @@ class SiteService implements SingletonInterface
      */
     private function getAllSupportedSites(): array
     {
-        return $this->cacheService->cache(
-            'siteService_getAllSites',
-            function () {
-                $sites = [];
-                foreach ($this->siteFinder->getAllSites(true) as $site) {
-                    $siteConfig = new Typo3SiteConfig($site);
-                    if ($this->isSiteSupported($siteConfig)) {
-                        $sites[] = $siteConfig;
-                    }
-                }
+        // TODO: caching ?
+        $sites = [];
+        foreach ($this->siteFinder->getAllSites() as $site) {
+            $siteConfig = new Typo3SiteConfig($site);
+            if ($this->isSiteSupported($siteConfig)) {
+                $sites[] = $siteConfig;
+            }
+        }
 
-                return $sites;
-            },
-            'MYRA_CLOUD',
-            0
-        );
+        return $sites;
     }
 
     /**
@@ -67,25 +55,19 @@ class SiteService implements SingletonInterface
      */
     private function getAllSupportedSitesForPageId(PageIdInterface $pageId): array
     {
-        return $this->cacheService->cache(
-            'siteService_getSites_for_page_' . $pageId->getPageId(),
-            function () use ($pageId) {
-                try {
-                    $site = $this->siteFinder->getSiteByPageId($pageId->getPageId());
-                    $siteConfig = new Typo3SiteConfig($site);
-                } catch (\Exception $_) {
-                    return [];
-                }
+        // todo: caching?
+        try {
+            $site = $this->siteFinder->getSiteByPageId($pageId->getPageId());
+            $siteConfig = new Typo3SiteConfig($site);
+        } catch (\Exception $_) {
+            return [];
+        }
 
-                if ($this->isSiteSupported($siteConfig)) {
-                    return [$siteConfig];
-                }
+        if ($this->isSiteSupported($siteConfig)) {
+            return [$siteConfig];
+        }
 
-                return [];
-            },
-            'MYRA_CLOUD',
-            0
-        );
+        return [];
     }
 
     /**

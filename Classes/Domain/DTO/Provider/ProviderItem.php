@@ -53,9 +53,9 @@ class ProviderItem implements ProviderItemRegisterInterface
         return $this->getAdapter()->getRequireJsFunction();
     }
 
-    public function getRequireJsCall(string $id, int $type = Typo3CacheType::UNKNOWN): string
+    public function getRequireJsCall(string $id, Typo3CacheType $type = Typo3CacheType::UNKNOWN): string
     {
-        return 'require(["'. $this->getRequireJsNamespace() .'"],function(c){c.'. $this->getRequireJsFunction() .'('. $type .', \'' . $id . '\');});return false;';
+        return 'require(["'. $this->getRequireJsNamespace() .'"],function(c){c.'. $this->getRequireJsFunction() .'('. $type->value .', \'' . $id . '\');});return false;';
     }
 
     public function getTypo3CssClass(): string

@@ -11,7 +11,7 @@ interface ProviderItemRegisterInterface extends AdapterRegisterInterface
 {
     public function getAdapter(): AdapterInterface;
 
-    public function getRequireJsCall(string $id, int $type = Typo3CacheType::UNKNOWN): string;
+    public function getRequireJsCall(string $id, Typo3CacheType $type = Typo3CacheType::UNKNOWN): string;
 
     public function getTypo3CssClass(): string;
 

@@ -3,20 +3,26 @@ declare(strict_types=1);
 
 namespace CPSIT\CpsMyraCloud\CacheActionMenu;
 
-use CPSIT\CpsMyraCloud\AdapterProvider\ExternalCacheProvider;
+use CPSIT\CpsMyraCloud\AdapterProvider\AdapterProvider;
 use CPSIT\CpsMyraCloud\Domain\Enum\Typo3CacheType;
+use TYPO3\CMS\Backend\Routing\Exception\RouteNotFoundException;
 use TYPO3\CMS\Backend\Routing\UriBuilder;
-use TYPO3\CMS\Backend\Toolbar\ClearCacheActionsHookInterface;
-use TYPO3\CMS\Core\Utility\GeneralUtility;
 
-class ExternalClearCacheMenuItemProvider implements ClearCacheActionsHookInterface
+readonly class ExternalClearCacheMenuItemProvider
 {
+    public function __construct(
+        private AdapterProvider $provider,
+        private UriBuilder $uriBuilder
+    )
+    {}
+
     /**
-     * @param array $cacheActions
-     * @param array $optionValues
-     * @throws \TYPO3\CMS\Backend\Routing\Exception\RouteNotFoundException
+     * @param $cacheActions
+     * @param $optionValues
+     * @return void
+     * @throws RouteNotFoundException
      */
-    public function manipulateCacheActions(&$cacheActions, &$optionValues)
+    public function manipulateCacheActions(&$cacheActions, &$optionValues): void
     {
         $this->setClearAllCacheButton($cacheActions, $optionValues);
         $this->setClearAllResourcesCacheButton($cacheActions, $optionValues);
@@ -25,18 +31,18 @@ class ExternalClearCacheMenuItemProvider implements ClearCacheActionsHookInterfa
     /**
      * @param array $cacheActions
      * @param array $optionValues
-     * @throws \TYPO3\CMS\Backend\Routing\Exception\RouteNotFoundException
+     * @return void
+     * @throws RouteNotFoundException
      */
     public function setClearAllCacheButton(array &$cacheActions, array &$optionValues): void
     {
-        $provider = ExternalCacheProvider::getDefaultProviderItem();
+        $provider = $this->provider->getDefaultProviderItem();
         if ($provider && $provider->canInteract()) {
-            $uriBuilder = GeneralUtility::makeInstance(UriBuilder::class);
             $cacheActions[] = [
                 'id' => $provider->getCacheId(),
                 'title' => $provider->getCacheTitle(),
                 'description' => $provider->getCacheDescription(),
-                'href' => (string)$uriBuilder->buildUriFromRoute('ajax_external_cache_clear', ['type' => Typo3CacheType::ALL_PAGE, 'id' => '-1']),
+                'href' => (string)$this->uriBuilder->buildUriFromRoute('ajax_external_cache_clear', ['type' => Typo3CacheType::ALL_PAGE->value, 'id' => '-1']),
                 'iconIdentifier' => $provider->getCacheIconIdentifier()
             ];
             $optionValues[] = $provider->getCacheId();
@@ -46,19 +52,18 @@ class ExternalClearCacheMenuItemProvider implements ClearCacheActionsHookInterfa
     /**
      * @param array $cacheActions
      * @param array $optionValues
-     * @throws \TYPO3\CMS\Backend\Routing\Exception\RouteNotFoundException
+     * @throws RouteNotFoundException
      */
     public function setClearAllResourcesCacheButton(array &$cacheActions, array &$optionValues): void
     {
-        $provider = ExternalCacheProvider::getDefaultProviderItem();
+        $provider = $this->provider->getDefaultProviderItem();
         if ($provider && $provider->canInteract()) {
             $id = $provider->getCacheId().'_resources';
-            $uriBuilder = GeneralUtility::makeInstance(UriBuilder::class);
             $cacheActions[] = [
                 'id' => $id,
                 'title' => $provider->getCacheTitle().'.resource',
                 'description' => $provider->getCacheDescription().'.resource',
-                'href' => (string)$uriBuilder->buildUriFromRoute('ajax_external_cache_clear', ['type' => Typo3CacheType::ALL_RESOURCES, 'id' => '-1']),
+                'href' => (string)$this->uriBuilder->buildUriFromRoute('ajax_external_cache_clear', ['type' => Typo3CacheType::ALL_RESOURCES->value, 'id' => '-1']),
                 'iconIdentifier' => $provider->getCacheIconIdentifier()
             ];
             $optionValues[] = $id;

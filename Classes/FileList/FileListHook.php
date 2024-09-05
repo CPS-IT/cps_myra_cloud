@@ -3,7 +3,7 @@ declare(strict_types=1);
 
 namespace CPSIT\CpsMyraCloud\FileList;
 
-use CPSIT\CpsMyraCloud\AdapterProvider\ExternalCacheProvider;
+use CPSIT\CpsMyraCloud\AdapterProvider\AdapterProvider;
 use CPSIT\CpsMyraCloud\Domain\DTO\Typo3\File\FileAdmin;
 use CPSIT\CpsMyraCloud\Domain\Enum\Typo3CacheType;
 use CPSIT\CpsMyraCloud\Domain\Repository\FileRepository;
@@ -12,25 +12,19 @@ use Doctrine\DBAL\Driver\Exception;
 use TYPO3\CMS\Core\Resource\DuplicationBehavior;
 use TYPO3\CMS\Core\SingletonInterface;
 use TYPO3\CMS\Core\Utility\File\ExtendedFileUtility;
-use TYPO3\CMS\Core\Utility\File\ExtendedFileUtilityProcessDataHookInterface;
 use TYPO3\CMS\Core\Resource\FileInterface;
 use CPSIT\CpsMyraCloud\Domain\DTO\Typo3\File\FileInterface as MyraFileInterface;
 
-class FileListHook implements ExtendedFileUtilityProcessDataHookInterface, SingletonInterface
+class FileListHook implements SingletonInterface
 {
-    private ExternalCacheService $externalCacheService;
-    private FileRepository $fileRepository;
     private array $pageAlreadyCleared = [];
 
-    /**
-     * @param ExternalCacheService $externalCacheService
-     * @param FileRepository $fileRepository
-     */
-    public function __construct(ExternalCacheService $externalCacheService, FileRepository $fileRepository)
-    {
-        $this->fileRepository = $fileRepository;
-        $this->externalCacheService = $externalCacheService;
-    }
+    public function __construct(
+        private readonly ExternalCacheService $externalCacheService,
+        private readonly FileRepository $fileRepository,
+        private readonly AdapterProvider $provider
+    )
+    {}
 
     /**
      * @param string $action
@@ -38,10 +32,10 @@ class FileListHook implements ExtendedFileUtilityProcessDataHookInterface, Singl
      * @param array $result
      * @param ExtendedFileUtility $parentObject
      */
-    public function processData_postProcessAction($action, array $cmdArr, array $result, ExtendedFileUtility $parentObject)
+    public function processData_postProcessAction($action, array $cmdArr, array $result, ExtendedFileUtility $parentObject): void
     {
         if ($action === 'upload' && $parentObject->getExistingFilesConflictMode() === DuplicationBehavior::REPLACE) {
-            $provider = ExternalCacheProvider::getDefaultProviderItem();
+            $provider = $this->provider->getDefaultProviderItem();
             if ($provider && $provider->canAutomated()) {
                 $this->clearCacheForFileGroups($result);
             }
@@ -104,7 +98,8 @@ class FileListHook implements ExtendedFileUtilityProcessDataHookInterface, Singl
      */
     private function clearMyraFile(MyraFileInterface $file): void
     {
-        $path = $file->getRawSlug();
+        // TODO: add other storages here not only (1:)
+        $path = '1:/' . ltrim($file->getRawSlug(), '/');
         $crc = crc32($path);
         if (!($this->pageAlreadyCleared[$crc]??false)) {
             try {

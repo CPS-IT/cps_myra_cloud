@@ -5,9 +5,11 @@ namespace CPSIT\CpsMyraCloud\Service;
 
 
 use CPSIT\CpsMyraCloud\Adapter\AdapterInterface;
-use CPSIT\CpsMyraCloud\AdapterProvider\ExternalCacheProvider;
+use CPSIT\CpsMyraCloud\AdapterProvider\AdapterProvider;
 use CPSIT\CpsMyraCloud\Domain\DTO\Provider\ProviderItemRegisterInterface;
+use CPSIT\CpsMyraCloud\Domain\DTO\Typo3\File\CustomFile;
 use CPSIT\CpsMyraCloud\Domain\DTO\Typo3\File\FileAdmin;
+use CPSIT\CpsMyraCloud\Domain\DTO\Typo3\File\FileInterface;
 use CPSIT\CpsMyraCloud\Domain\DTO\Typo3\File\Typo3Conf;
 use CPSIT\CpsMyraCloud\Domain\DTO\Typo3\File\Typo3Core;
 use CPSIT\CpsMyraCloud\Domain\DTO\Typo3\File\Typo3Temp;
@@ -15,29 +17,22 @@ use CPSIT\CpsMyraCloud\Domain\DTO\Typo3\PageSlugInterface;
 use CPSIT\CpsMyraCloud\Domain\DTO\Typo3\SiteConfigInterface;
 use CPSIT\CpsMyraCloud\Domain\Enum\Typo3CacheType;
 
-class ExternalCacheService
+readonly class ExternalCacheService
 {
-    private PageService $pageService;
-    private SiteService $siteService;
+    public function __construct(
+        private PageService $pageService,
+        private SiteService $siteService,
+        private AdapterProvider $provider
+    ) {}
 
     /**
-     * @param PageService $pageService
-     * @param SiteService $siteService
-     */
-    public function __construct(PageService $pageService, SiteService $siteService)
-    {
-        $this->pageService = $pageService;
-        $this->siteService = $siteService;
-    }
-
-    /**
-     * @param int $type
+     * @param Typo3CacheType $type
      * @param string $identifier
      * @return bool
      */
-    public function clear(int $type, string $identifier): bool
+    public function clear(Typo3CacheType $type, string $identifier): bool
     {
-        $providerItem = ExternalCacheProvider::getDefaultProviderItem();
+        $providerItem = $this->provider->getDefaultProviderItem();
         if ($providerItem === null) {
             return false;
         }
@@ -45,7 +40,7 @@ class ExternalCacheService
         if ($type === Typo3CacheType::PAGE) {
             return $this->clearPage($providerItem, (int)$identifier);
         } elseif ($type === Typo3CacheType::RESOURCE) {
-            return $this->clearFile($providerItem, $identifier);
+            return $this->clearFile($providerItem, trim($identifier));
         } elseif ($type === Typo3CacheType::ALL_PAGE) {
             return $this->clearAllPages($providerItem);
         } elseif ($type === Typo3CacheType::ALL_RESOURCES) {
@@ -100,11 +95,25 @@ class ExternalCacheService
      */
     private function clearFile(ProviderItemRegisterInterface $provider, string $relPath): bool
     {
-        $file = new FileAdmin($relPath);
+        $file = $this->getFile($relPath);
         $sites = $this->siteService->getSitesForClearance(null);
         // files are always recursive deleted
         return $this->clearCacheWithAdapter($provider->getAdapter(), $sites, $file, true);
     }
+
+    /**
+     * @param string $identifier
+     * @return FileInterface
+     */
+    private function getFile(string $identifier): FileInterface
+    {
+        if (str_starts_with($identifier, '1:/')) {
+            return new FileAdmin(substr($identifier, 3));
+        }
+        // TODO: add other storages here
+        return new CustomFile($identifier);
+    }
+
 
     /**
      * @param AdapterInterface $adapter

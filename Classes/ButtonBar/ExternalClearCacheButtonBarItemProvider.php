@@ -3,8 +3,7 @@ declare(strict_types=1);
 
 namespace CPSIT\CpsMyraCloud\ButtonBar;
 
-
-use CPSIT\CpsMyraCloud\AdapterProvider\ExternalCacheProvider;
+use CPSIT\CpsMyraCloud\AdapterProvider\AdapterProvider;
 use CPSIT\CpsMyraCloud\Domain\Enum\Typo3CacheType;
 use CPSIT\CpsMyraCloud\Service\PageService;
 use Psr\Http\Message\ServerRequestInterface;
@@ -17,21 +16,15 @@ use TYPO3\CMS\Core\Localization\LanguageService;
 
 class ExternalClearCacheButtonBarItemProvider
 {
-    private PageService $pageService;
-    private IconFactory $iconFactory;
-
-    private int $cacheTypeCache = Typo3CacheType::UNKNOWN;
+    private Typo3CacheType $cacheTypeCache = Typo3CacheType::UNKNOWN;
     private string $cacheId = '';
 
-    /**
-     * @param PageService $pageService
-     * @param IconFactory $iconFactory
-     */
-    public function __construct(PageService $pageService, IconFactory $iconFactory)
-    {
-        $this->pageService = $pageService;
-        $this->iconFactory = $iconFactory;
-    }
+    public function __construct(
+        private readonly PageService $pageService,
+        private readonly IconFactory $iconFactory,
+        private readonly AdapterProvider $provider
+    )
+    {}
 
     /**
      * Get buttons
@@ -47,7 +40,7 @@ class ExternalClearCacheButtonBarItemProvider
             return $buttons;
         }
 
-        $provider = ExternalCacheProvider::getDefaultProviderItem();
+        $provider = $this->provider->getDefaultProviderItem();
         if ($provider && $provider->canInteract()) {
             $lang = $this->getLanguageService();
             $clearCacheButton = $buttonBar->makeLinkButton();
@@ -92,14 +85,12 @@ class ExternalClearCacheButtonBarItemProvider
 
             return $this->cacheId = $id;
         } elseif ($this->getCacheType() === Typo3CacheType::RESOURCE) {
-            if (strpos($id, '1:/') === 0) {
-                return $this->cacheId = substr($id, 2);
-            } else {
-                return $this->cacheId = '/';
-            }
+            if ($id === '')
+                $id = '1:/';
+            return $this->cacheId = $id;
         }
 
-        return '';
+        return $this->cacheId = '';
     }
 
     /**
@@ -139,10 +130,7 @@ class ExternalClearCacheButtonBarItemProvider
         return $this->getCacheType() > Typo3CacheType::UNKNOWN;
     }
 
-    /**
-     * @return int
-     */
-    private function getCacheType(): int
+    private function getCacheType(): Typo3CacheType
     {
         if ($this->cacheTypeCache !== Typo3CacheType::UNKNOWN) {
             return $this->cacheTypeCache;
@@ -168,6 +156,17 @@ class ExternalClearCacheButtonBarItemProvider
     private function getBackendRoute(): string
     {
         return $this->getRequest()->getQueryParams()['route']??'';
+    }
+
+    /**
+     * @return string
+     */
+    private function getBackendEditTableName(): string
+    {
+        if (array_key_exists('sys_file_metadata', $this->getRequest()->getQueryParams()['edit'])) {
+            return 'sys_file_metadata';
+        }
+        return '';
     }
 
     /**
