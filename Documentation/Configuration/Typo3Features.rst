@@ -27,14 +27,14 @@ Admin Only UI Elements
 If checked, all UI Elements are disabled for non-admin users.
 
 ..  note::
-    Auto-clear hooks (page update / file list replace) are not affected by this.
+    Auto-clear hooks (page update / file list replace / cache tag flush) are not affected by this.
 
 ..  _disable-hooks:
 
 Disable Hooks
 ~~~~~~~~~~~~~
 
-If checked, both auto-clear hooks (page update and file list replace) are disabled.
+If checked, all AutoClear mechanisms (page update, file list replace and cache tag flush) are disabled.
 
 ..  _domain-blacklist:
 
